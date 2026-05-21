@@ -33,7 +33,7 @@ public class TripActivity {
 
     @ManyToMany
     @JoinTable(
-        name = "activity_interests", // Spring creates this hidden table for you!
+        name = "activity_interests", 
         joinColumns = @JoinColumn(name = "activity_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
