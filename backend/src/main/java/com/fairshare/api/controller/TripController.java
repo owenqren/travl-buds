@@ -1,23 +1,33 @@
 package com.fairshare.api.controller;
 
 import com.fairshare.api.models.Trip;
+<<<<<<< Updated upstream
 import com.fairshare.api.models.User;
 import com.fairshare.api.repositories.TripRepository;
 import com.fairshare.api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+=======
+import com.fairshare.api.repositories.TripRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+>>>>>>> Stashed changes
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
+<<<<<<< Updated upstream
 @CrossOrigin(origins = "http://localhost:5173") // Locked down to your Vite app!
+=======
+@CrossOrigin(origins = "http://localhost:5173")
+>>>>>>> Stashed changes
 public class TripController {
 
     @Autowired
     private TripRepository tripRepository;
 
+<<<<<<< Updated upstream
     @Autowired
     private UserRepository userRepository;
 
@@ -51,5 +61,15 @@ public class TripController {
         Trip savedTrip = tripRepository.save(trip);
         
         return ResponseEntity.ok(savedTrip);
+=======
+    @GetMapping
+    public List<Trip> getAllTrips() {
+        return tripRepository.findAll();
+    }
+
+    @PostMapping
+    public Trip createTrip(@RequestBody Trip trip) {
+        return tripRepository.save(trip);
+>>>>>>> Stashed changes
     }
 }
