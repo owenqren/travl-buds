@@ -5,6 +5,9 @@ export default function TripForm({ onTripAdded }) {
         name: '', destination: '', startDate: '', endDate: ''
     });
 
+    // TODO: Remove later
+    const currentUserId = 1;
+
     const handleChange = (e) => {
         setTripData({ ...tripData, [e.target.name]: e.target.value });
     };
@@ -13,12 +16,11 @@ export default function TripForm({ onTripAdded }) {
         e.preventDefault();
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trips`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trips?userId=${currentUserId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(tripData)
             });
-
             if (response.ok) {
                 const newTrip = await response.json();
                 onTripAdded(newTrip);
