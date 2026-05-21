@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+<<<<<<< Updated upstream
 @RestController
 @RequestMapping("/api/trips")
 <<<<<<< Updated upstream
@@ -23,6 +24,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:5173")
 >>>>>>> Stashed changes
 public class TripController {
+=======
+    @RestController
+    @RequestMapping("/api/trips")
+    @CrossOrigin(origins = "http://localhost:5173")
+    public class TripController {
+>>>>>>> Stashed changes
 
     @Autowired
     private TripRepository tripRepository;
