@@ -1,11 +1,12 @@
 package com.fairshare.api.models;
+
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "trips")
-
 public class Trip {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -14,14 +15,18 @@ public class Trip {
     private String destination;
     private LocalDate startDate;
     private LocalDate endDate;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Trip() {}
 
-    public Trip(String name, String destination, LocalDate startDate, LocalDate endDate) {
+    public Trip(String name, String destination, LocalDate startDate, LocalDate endDate, User user) {
         this.name = name;
         this.destination = destination;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.user = user;
     }
 
     public Long getId() {
@@ -62,5 +67,12 @@ public class Trip {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
