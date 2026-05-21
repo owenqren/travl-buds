@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -59,8 +60,9 @@ public class TripActivityController {
     }
 
     // ---------------------------------------------------------
-    // OPT-IN TO AN ACTIVITY 
+    // OPT-IN TO AN ACTIVITY
     // ---------------------------------------------------------
+    @Transactional
     @PostMapping("/{tripId}/activities/{activityId}/join")
     public ResponseEntity<String> joinActivity(
             @PathVariable Long tripId,
@@ -76,6 +78,9 @@ public class TripActivityController {
         if (!activity.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Activity does not belong to this trip.");
         }
+        if (activity.getInterestedUsers().contains(user)) {
+            return ResponseEntity.badRequest().body("You have already joined this activity.");
+        }
 
         activity.getInterestedUsers().add(user);
         activityRepo.save(activity);
@@ -83,8 +88,9 @@ public class TripActivityController {
     }
 
     // ---------------------------------------------------------
-    // OPT-OUT OF AN ACTIVITY 
+    // OPT-OUT OF AN ACTIVITY
     // ---------------------------------------------------------
+    @Transactional
     @DeleteMapping("/{tripId}/activities/{activityId}/leave")
     public ResponseEntity<String> leaveActivity(
             @PathVariable Long tripId,
