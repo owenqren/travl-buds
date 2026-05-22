@@ -7,5 +7,5 @@ import java.util.List;
 public interface TripActivityRepository extends JpaRepository<TripActivity, Long> {
     
     // Grabs every museum, park, etc. added to a specific trip
-    List<TripActivity> findByTripId(Long tripId);
+    List<TripActivity> findByTripDayId(Long tripDayId);
 }
