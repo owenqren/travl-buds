@@ -11,20 +11,22 @@ export default function TripDetails({ tripId, onBack }) {
     const currentUserId = 1;
 
     useEffect(() => {
-        // Fetch voted locations
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/destinations?userId=${currentUserId}`)
-            .then(res => res.json())
-            .then(data => {
-                setVotedLocations(data);
-                setHasVoted(data.some(d => d.voteCount !== null));
-            });
+        setLoading(true); // Ensure it starts as true
 
-        // Fetch activities
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/activities`)
-            .then(res => res.json())
-            .then(data => {
-                setActivities(data);
-                setLoading(false);
+        // Fetch both datasets simultaneously
+        const fetchDestinations = fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/destinations?userId=${currentUserId}`).then(res => res.json());
+        const fetchActivities = fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/activities`).then(res => res.json());
+
+        Promise.all([fetchDestinations, fetchActivities])
+            .then(([destData, actData]) => {
+                setVotedLocations(destData);
+                setHasVoted(destData.some(d => d.voteCount !== null));
+                setActivities(actData);
+                setLoading(false); // Only stop loading when BOTH are done
+            })
+            .catch(err => {
+                console.error("Failed to load trip data:", err);
+                setLoading(false); // Stop loading even on error so the user isn't stuck
             });
     }, [tripId]);
 
