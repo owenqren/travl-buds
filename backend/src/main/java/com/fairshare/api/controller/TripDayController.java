@@ -1,0 +1,47 @@
+package com.fairshare.api.controller;
+
+import com.fairshare.api.models.Trip;
+import com.fairshare.api.models.TripDay;
+import com.fairshare.api.repositories.TripDayRepository;
+import com.fairshare.api.repositories.TripRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/trips")
+@CrossOrigin(origins = "http://localhost:5173")
+public class TripDayController {
+
+    @Autowired
+    private TripDayRepository tripDayRepo;
+
+    @Autowired
+    private TripRepository tripRepo;
+
+    // GET ALL DAYS FOR A TRIP
+    @Transactional
+    @GetMapping("/{tripId}/days")
+    public ResponseEntity<List<TripDay>> getDays(@PathVariable Long tripId) {
+        return ResponseEntity.ok(tripDayRepo.findByTripIdOrderByDateAsc(tripId));
+    }
+
+    // ADD A DAY TO A TRIP
+    @PostMapping("/{tripId}/days")
+    public ResponseEntity<?> addDay(
+            @PathVariable Long tripId,
+            @RequestBody TripDay dayRequest) {
+
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        if (trip == null) {
+            return ResponseEntity.status(404).body("Trip not found.");
+        }
+
+        dayRequest.setTrip(trip);
+        TripDay saved = tripDayRepo.save(dayRequest);
+        return ResponseEntity.ok(saved);
+    }
+}
