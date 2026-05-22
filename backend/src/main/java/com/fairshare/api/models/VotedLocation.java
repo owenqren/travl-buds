@@ -7,7 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "destinations")
-public class Destination {
+public class VotedLocation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +27,9 @@ public class Destination {
     private List<Vote> votes = new ArrayList<>();
 
     // Empty constructor required by Hibernate
-    public Destination() {}
+    public VotedLocation() {}
 
-    public Destination(String name, Trip trip) {
+    public VotedLocation(String name, Trip trip) {
         this.name = name;
         this.trip = trip;
     }

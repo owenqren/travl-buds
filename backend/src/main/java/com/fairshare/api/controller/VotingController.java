@@ -1,10 +1,13 @@
 package com.fairshare.api.controller;
 
 import com.fairshare.api.dto.DestinationResponse;
-import com.fairshare.api.models.Destination;
+import com.fairshare.api.models.VotedLocation;
+import com.fairshare.api.models.Trip;
 import com.fairshare.api.models.User;
 import com.fairshare.api.models.Vote;
-import com.fairshare.api.repositories.DestinationRepository;
+import com.fairshare.api.models.VotedLocation;
+import com.fairshare.api.repositories.VotedLocationRepository;
+import com.fairshare.api.repositories.TripRepository;
 import com.fairshare.api.repositories.UserRepository;
 import com.fairshare.api.repositories.VoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/trips")
 
@@ -21,7 +25,9 @@ import java.util.List;
 public class VotingController {
 
     @Autowired
-    private DestinationRepository destinationRepo;
+    private TripRepository tripRepo;
+    @Autowired
+    private VotedLocationRepository destinationRepo;
 
     @Autowired
     private VoteRepository voteRepo;
@@ -38,7 +44,7 @@ public class VotingController {
             @RequestParam Long userId) {
 
         // Fetch the list of destinations for this specific tripId
-        List<Destination> destinations = destinationRepo.findByTripId(tripId);
+        List<VotedLocation> destinations = destinationRepo.findByTripId(tripId);
 
         // Check if this specific userId has cast a vote for this tripId
         boolean hasVoted = voteRepo.existsByUserIdAndDestinationTripId(userId, tripId);
@@ -47,7 +53,7 @@ public class VotingController {
         // The Blind Logic Loop
         // If the user has voted -> add to responseList WITH the true vote count.
         // If the user has NOT voted -> add to responseList with a NULL vote count.
-        for (Destination dest : destinations) {
+        for (VotedLocation dest : destinations) {
             Integer voteCount = null;
             if (hasVoted) {
                 voteCount = dest.getVotes().size();
@@ -75,7 +81,7 @@ public class VotingController {
         // Fetch the User and Destination from the database
         // (Handle the case where they might not exist!)
         User user = userRepo.findById(userId).orElse(null);
-        Destination destination = destinationRepo.findById(destinationId).orElse(null);
+        VotedLocation destination = destinationRepo.findById(destinationId).orElse(null);
 
         if (user == null)
             return ResponseEntity.status(404).body("User not found.");
@@ -99,5 +105,27 @@ public class VotingController {
 
         // Send a success message back to React
         return ResponseEntity.ok("Vote successfully cast!");
+    }
+
+    // ---------------------------------------------------------
+    // ADD A NEW VOTED LOCATION
+    // ---------------------------------------------------------
+    @PostMapping("/{tripId}/destinations")
+    public ResponseEntity<?> addDestination(
+            @PathVariable Long tripId,
+            @RequestParam Long userId,
+            @RequestBody VotedLocation destinationRequest) {
+
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        User user = userRepo.findById(userId).orElse(null);
+
+        if (trip == null || user == null) {
+            return ResponseEntity.status(404).body("Trip or User not found.");
+        }
+
+        destinationRequest.setTrip(trip);
+        destinationRepo.save(destinationRequest);
+
+        return ResponseEntity.ok(destinationRequest);
     }
 }
