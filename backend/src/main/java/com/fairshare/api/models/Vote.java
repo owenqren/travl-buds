@@ -1,5 +1,4 @@
 package com.fairshare.api.models;
-import javax.print.attribute.standard.Destination;
 
 import jakarta.persistence.*;
 
@@ -17,16 +16,16 @@ public class Vote {
 
     // A vote belongs to ONE destination
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_id")
-    private VotedLocation destination;
+    @JoinColumn(name = "voted_location_id")
+    private VotedLocation votedLocation;
 
     // Empty constructor required by Hibernate
     public Vote() {}
 
     // Constructor for easy object creation
-    public Vote(User user, VotedLocation destination) {
+    public Vote(User user, VotedLocation votedLocation) {
         this.user = user;
-        this.destination = destination;
+        this.votedLocation = votedLocation;
     }
 
     // --- Getters and Setters ---
@@ -36,6 +35,6 @@ public class Vote {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
     
-    public VotedLocation getDestination() { return destination; }
-    public void setDestination(VotedLocation destination) { this.destination = destination; }
+    public VotedLocation getVotedLocation() { return votedLocation; }
+    public void setVotedLocation(VotedLocation votedLocation) { this.votedLocation = votedLocation; }
 }
