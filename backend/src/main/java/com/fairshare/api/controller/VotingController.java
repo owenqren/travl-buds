@@ -1,14 +1,13 @@
 package com.fairshare.api.controller;
 
 import com.fairshare.api.dto.DestinationResponse;
-import com.fairshare.api.models.VotedLocation;
-import com.fairshare.api.models.Trip;
+import com.fairshare.api.models.TripDay;
 import com.fairshare.api.models.User;
 import com.fairshare.api.models.Vote;
 import com.fairshare.api.models.VotedLocation;
-import com.fairshare.api.repositories.VotedLocationRepository;
-import com.fairshare.api.repositories.TripRepository;
+import com.fairshare.api.repositories.TripDayRepository;
 import com.fairshare.api.repositories.UserRepository;
+import com.fairshare.api.repositories.VotedLocationRepository;
 import com.fairshare.api.repositories.VoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,17 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/api/trips")
-
 @CrossOrigin(origins = "http://localhost:5173")
 public class VotingController {
 
     @Autowired
-    private TripRepository tripRepo;
-    @Autowired
-    private VotedLocationRepository destinationRepo;
+    private VotedLocationRepository votedLocationRepo;
 
     @Autowired
     private VoteRepository voteRepo;
@@ -35,97 +30,94 @@ public class VotingController {
     @Autowired
     private UserRepository userRepo;
 
-    // ---------------------------------------------------------
-    // ENDPOINT 1: GET THE DESTINATIONS (The Blind Logic)
-    // ---------------------------------------------------------
-    @GetMapping("/{tripId}/destinations")
-    public ResponseEntity<List<DestinationResponse>> getDestinations(
+    @Autowired
+    private TripDayRepository tripDayRepo;
+
+    // GET VOTED LOCATIONS FOR A DAY (Blind Logic)
+    @GetMapping("/{tripId}/days/{dayId}/destinations")
+    public ResponseEntity<?> getDestinations(
             @PathVariable Long tripId,
+            @PathVariable Long dayId,
             @RequestParam Long userId) {
 
-        // Fetch the list of destinations for this specific tripId
-        List<VotedLocation> destinations = destinationRepo.findByTripId(tripId);
+        TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
 
-        // Check if this specific userId has cast a vote for this tripId
-        boolean hasVoted = voteRepo.existsByUserIdAndDestinationTripId(userId, tripId);
+        if (tripDay == null) {
+            return ResponseEntity.status(404).body("Day not found.");
+        }
+        if (!tripDay.getTrip().getId().equals(tripId)) {
+            return ResponseEntity.badRequest().body("Day does not belong to this trip.");
+        }
+
+        List<VotedLocation> locations = votedLocationRepo.findByTripDayId(dayId);
+        boolean hasVoted = voteRepo.existsByUserIdAndVotedLocationTripDayId(userId, dayId);
         List<DestinationResponse> responseList = new ArrayList<>();
 
-        // The Blind Logic Loop
-        // If the user has voted -> add to responseList WITH the true vote count.
-        // If the user has NOT voted -> add to responseList with a NULL vote count.
-        for (VotedLocation dest : destinations) {
+        for (VotedLocation loc : locations) {
             Integer voteCount = null;
             if (hasVoted) {
-                voteCount = dest.getVotes().size();
+                voteCount = loc.getVotes().size();
             }
-            DestinationResponse responseBox = new DestinationResponse(
-                    dest.getId(),
-                    dest.getName(),
-                    voteCount);
-
-            responseList.add(responseBox);
+            responseList.add(new DestinationResponse(loc.getId(), loc.getName(), voteCount));
         }
 
         return ResponseEntity.ok(responseList);
     }
 
-    // ---------------------------------------------------------
-    // ENDPOINT 2: CAST A VOTE
-    // ---------------------------------------------------------
-    @PostMapping("/{tripId}/vote")
+    // CAST A VOTE
+    @PostMapping("/{tripId}/days/{dayId}/vote")
     public ResponseEntity<String> castVote(
             @PathVariable Long tripId,
+            @PathVariable Long dayId,
             @RequestParam Long userId,
-            @RequestParam Long destinationId) {
+            @RequestParam Long votedLocationId) {
 
-        // Fetch the User and Destination from the database
-        // (Handle the case where they might not exist!)
         User user = userRepo.findById(userId).orElse(null);
-        VotedLocation destination = destinationRepo.findById(destinationId).orElse(null);
+        VotedLocation location = votedLocationRepo.findById(votedLocationId).orElse(null);
 
         if (user == null)
             return ResponseEntity.status(404).body("User not found.");
-        if (destination == null)
-            return ResponseEntity.status(404).body("Destination not found.");
-        // Prevent double voting and wrong destination
-        // If they have, return a "Bad Request" (400) response.
-        if (!destination.getTrip().getId().equals(tripId)) {
-            return ResponseEntity.badRequest().body("That destination does not belong to this trip.");
+        if (location == null)
+            return ResponseEntity.status(404).body("Location not found.");
+
+        if (!location.getTripDay().getId().equals(dayId)) {
+            return ResponseEntity.badRequest().body("Location does not belong to this day.");
         }
-        if (voteRepo.existsByUserIdAndDestinationTripId(userId, tripId)) {
-            return ResponseEntity.badRequest().body("You have already voted for this trip!");
+        if (!location.getTripDay().getTrip().getId().equals(tripId)) {
+            return ResponseEntity.badRequest().body("Location does not belong to this trip.");
+        }
+        if (voteRepo.existsByUserIdAndVotedLocationTripDayId(userId, dayId)) {
+            return ResponseEntity.badRequest().body("You have already voted for this day!");
         }
 
-        // Step 3: Create and save the Vote
-        // and save it using voteRepo.
-        Vote newVote = new Vote(user, destination);
-
-        // Save it to PostgreSQL
-        voteRepo.save(newVote);
-
-        // Send a success message back to React
+        voteRepo.save(new Vote(user, location));
         return ResponseEntity.ok("Vote successfully cast!");
     }
 
-    // ---------------------------------------------------------
-    // ADD A NEW VOTED LOCATION
-    // ---------------------------------------------------------
-    @PostMapping("/{tripId}/destinations")
+    // ADD A VOTED LOCATION
+    @PostMapping("/{tripId}/days/{dayId}/destinations")
     public ResponseEntity<?> addDestination(
             @PathVariable Long tripId,
+            @PathVariable Long dayId,
             @RequestParam Long userId,
-            @RequestBody VotedLocation destinationRequest) {
+            @RequestBody VotedLocation locationRequest) {
 
-        Trip trip = tripRepo.findById(tripId).orElse(null);
+        TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
         User user = userRepo.findById(userId).orElse(null);
 
-        if (trip == null || user == null) {
-            return ResponseEntity.status(404).body("Trip or User not found.");
+        if (tripDay == null) {
+            return ResponseEntity.status(404).body("Day not found.");
+        }
+        if (user == null) {
+            return ResponseEntity.status(404).body("User not found.");
         }
 
-        destinationRequest.setTrip(trip);
-        destinationRepo.save(destinationRequest);
+        if (!tripDay.getTrip().getId().equals(tripId)) {
+            return ResponseEntity.badRequest().body("Day does not belong to this trip.");
+        }
 
-        return ResponseEntity.ok(destinationRequest);
+        locationRequest.setTripDay(tripDay);
+        votedLocationRepo.save(locationRequest);
+        return ResponseEntity.ok(locationRequest);
     }
 }
