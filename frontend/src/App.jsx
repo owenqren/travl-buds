@@ -6,21 +6,21 @@ import './App.css';
 
 function App() {
     const [trips, setTrips] = useState([]);
-    
+
     //Track which trip the user wants to look at (null means show the main dashboard)
-    const [selectedTripId, setSelectedTripId] = useState(null); 
-    
+    const [selectedTripId, setSelectedTripId] = useState(null);
+
     // TODO: Remove later
     const currentUserId = 1;
 
     useEffect(() => {
         fetch(`${import.meta.env.VITE_API_URL}/api/trips?userId=${currentUserId}`)
-      .then(res => {
-          if (!res.ok) throw new Error("Backend rejected the request!");
-          return res.json();
-      })
-      .then(data => setTrips(data))
-      .catch(err => console.error("Error fetching trips:", err));
+            .then(res => {
+                if (!res.ok) throw new Error("Backend rejected the request!");
+                return res.json();
+            })
+            .then(data => setTrips(data))
+            .catch(err => console.error("Error fetching trips:", err));
     }, []);
 
     const handleTripAdded = (newTrip) => {
@@ -37,9 +37,10 @@ function App() {
             {/*THE CONDITIONAL RENDER */}
             {selectedTripId ? (
                 // IF a trip is selected, only show the Details page
-                <TripDetails 
-                    tripId={selectedTripId} 
-                    onBack={() => setSelectedTripId(null)} 
+                <TripDetails
+                    tripId={selectedTripId}
+                    trip={trips.find(t => t.id === selectedTripId)}
+                    onBack={() => setSelectedTripId(null)}
                 />
             ) : (
                 // ELSE, show the normal dashboard

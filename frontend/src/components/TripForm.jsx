@@ -5,12 +5,8 @@ export default function TripForm({ onTripAdded }) {
         name: '', destination: '', startDate: '', endDate: ''
     });
 
-    // TODO: Remove later
+    // TODO: remove later
     const currentUserId = 1;
-
-    const handleChange = (e) => {
-        setTripData({ ...tripData, [e.target.name]: e.target.value });
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,32 +28,39 @@ export default function TripForm({ onTripAdded }) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <input
                 name="name"
                 placeholder="Trip Name"
                 value={tripData.name}
-                onChange={handleChange}
+                onChange={e => setTripData({ ...tripData, name: e.target.value })}
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
             <input
                 name="destination"
                 placeholder="Destination"
                 value={tripData.destination}
-                onChange={handleChange}
+                onChange={e => setTripData({ ...tripData, destination: e.target.value })}
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
             <input
-                name="startDate"
                 type="date"
                 value={tripData.startDate}
-                onChange={handleChange}
+                onChange={e => setTripData({ ...tripData, startDate: e.target.value })}
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
             />
             <input
-                name="endDate"
                 type="date"
                 value={tripData.endDate}
-                onChange={handleChange}
+                onChange={e => setTripData({ ...tripData, endDate: e.target.value })}
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
             />
-            <button type="submit">Add Trip</button>
+            <button
+                type="submit"
+                style={{ padding: '10px', backgroundColor: '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+                Add Trip
+            </button>
         </form>
     );
 }
