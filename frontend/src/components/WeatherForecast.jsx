@@ -65,14 +65,17 @@ export default function WeatherForecast({ destination, tripDays }) {
     // Filter weather to only show days that match trip days
     const relevantDays = tripDays.map(day => {
         const index = weather.time.indexOf(day.date);
-        if (index === -1) return null;
+        if (index === -1) {
+            return { date: day.date, noData: true };
+        }
         return {
             date: day.date,
             max: Math.round(weather.temperature_2m_max[index]),
             min: Math.round(weather.temperature_2m_min[index]),
             code: weather.weathercode[index],
+            noData: false
         };
-    }).filter(Boolean);
+    });
 
     if (relevantDays.length === 0) {
         return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>No weather data for trip dates.</p>;
@@ -83,7 +86,49 @@ export default function WeatherForecast({ destination, tripDays }) {
             <h3 style={{ color: '#2c3e50', marginBottom: '10px' }}>🌤 Weather Forecast</h3>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {relevantDays.map(day => {
-                    const weather = weatherDescriptions[day.code] || { label: 'Unknown', icon: '🌡️' };
+                    if (day.noData) {
+                        return (
+                            <div
+                                key={day.date}
+                                style={{
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #eee',
+                                    borderRadius: '8px',
+                                    padding: '12px 16px',
+                                    textAlign: 'center',
+                                    minWidth: '80px',
+                                }}
+                            >
+                                <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{day.date}</p>
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        paddingTop: '-1px',
+                                    }}
+                                >
+                                    <p
+                                        style={{
+                                            fontSize: '12px',
+                                            color: '#7f8c8d',
+                                            margin: 0,
+                                            maxWidth: '80px',
+                                            lineHeight: '1.4',
+                                            whiteSpace: 'normal',
+                                        }}
+                                    >
+                                        No data.
+                                        Forecasts are limited
+                                        to 16 days ahead.
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    const w = weatherDescriptions[day.code] || { label: 'Unknown', icon: '🌡️' };
                     return (
                         <div
                             key={day.date}
@@ -97,8 +142,8 @@ export default function WeatherForecast({ destination, tripDays }) {
                             }}
                         >
                             <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{day.date}</p>
-                            <p style={{ fontSize: '24px', margin: '0 0 4px' }}>{weather.icon}</p>
-                            <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{weather.label}</p>
+                            <p style={{ fontSize: '24px', margin: '0 0 4px' }}>{w.icon}</p>
+                            <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{w.label}</p>
                             <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50', margin: 0 }}>
                                 {day.max}° / {day.min}°
                             </p>
