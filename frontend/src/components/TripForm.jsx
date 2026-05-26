@@ -47,12 +47,14 @@ export default function TripForm({ onTripAdded }) {
                 type="date"
                 value={tripData.startDate}
                 onChange={e => setTripData({ ...tripData, startDate: e.target.value })}
+                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(e); }}
                 style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
             />
             <input
                 type="date"
                 value={tripData.endDate}
                 onChange={e => setTripData({ ...tripData, endDate: e.target.value })}
+                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(e); }}
                 style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
             />
             <button

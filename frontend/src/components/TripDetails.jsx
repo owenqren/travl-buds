@@ -152,6 +152,7 @@ export default function TripDetails({ tripId, trip, onBack }) {
                     type="date"
                     value={newDayDate || ''}
                     onChange={e => setNewDayDate(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleAddDay(); }}
                     style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
                 />
                 <button
@@ -210,6 +211,7 @@ export default function TripDetails({ tripId, trip, onBack }) {
                                 placeholder="Activity name"
                                 value={newActivity.name}
                                 onChange={e => setNewActivity({ ...newActivity, name: e.target.value })}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
                                 style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
                             />
                             <input
@@ -217,6 +219,7 @@ export default function TripDetails({ tripId, trip, onBack }) {
                                 placeholder="Category (e.g. Museum, Hike)"
                                 value={newActivity.category}
                                 onChange={e => setNewActivity({ ...newActivity, category: e.target.value })}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
                                 style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
                             />
                             <button
@@ -270,6 +273,7 @@ export default function TripDetails({ tripId, trip, onBack }) {
                                 placeholder="e.g. Nobu, Shake Shack"
                                 value={newLocation}
                                 onChange={e => setNewLocation(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
                                 style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
                             />
                             <button
