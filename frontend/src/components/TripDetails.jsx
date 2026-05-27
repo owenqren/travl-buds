@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import WeatherForecast from './WeatherForecast';
+import TripMap from './TripMap';
 
 /**
  * TripDetails displays and manages a selected trip itinerary.
@@ -133,6 +134,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
 
             <h2 style={{ color: '#2c3e50', marginTop: 0 }}>{trip?.name || `Trip #${tripId}`}</h2>
             <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>📍 {trip?.destination}</p>
+            <TripMap destination={trip?.destination} />
 
             {/* DAY SELECTOR */}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', alignItems: 'center' }}>
