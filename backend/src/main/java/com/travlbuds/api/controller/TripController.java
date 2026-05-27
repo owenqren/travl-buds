@@ -14,6 +14,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trips")
 @CrossOrigin(origins = "http://localhost:5173")
+
+/**
+ * REST controller for trip-level operations.
+ *
+ * Provides endpoints for fetching a user's trips and creating new trips linked
+ * to an existing user.
+ */
+
 public class TripController {
 
     @Autowired

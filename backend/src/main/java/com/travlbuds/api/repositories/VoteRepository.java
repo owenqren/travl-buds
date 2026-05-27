@@ -4,6 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.travlbuds.api.models.Vote;
 
+/**
+ * Repository for Vote persistence.
+ *
+ * Provides standard CRUD operations and existence checks used to prevent repeat
+ * voting.
+ */
+
 public interface VoteRepository extends JpaRepository<Vote, Long> {
     
     // Checks: Does a vote exist where the user_id matches AND 

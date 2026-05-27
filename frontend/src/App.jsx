@@ -3,7 +3,12 @@ import TripForm from './components/TripForm';
 import TripList from './components/TripList';
 import TripDetails from './components/TripDetails';
 import './App.css';
-
+/**
+ * App coordinates the main TravlBuds dashboard.
+ *
+ * Loads the current user's trips, manages settings such as temperature and
+ * distance units, and switches between the trip list and selected trip details.
+ */
 function App() {
     const [trips, setTrips] = useState([]);
     const [showSettings, setShowSettings] = useState(false);

@@ -20,6 +20,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trips")
 @CrossOrigin(origins = "http://localhost:5173")
+
+/**
+ * REST controller for destination suggestions and voting.
+ *
+ * Handles blind destination voting by hiding vote counts until the user has
+ * voted, and validates that votes and destinations belong to the selected trip day.
+ */
+
 public class VotingController {
 
     @Autowired

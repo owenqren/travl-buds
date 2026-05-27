@@ -15,6 +15,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trips")
 @CrossOrigin(origins = "http://localhost:5173")
+
+/**
+ * REST controller for managing days within a trip.
+ *
+ * Provides endpoints for listing trip days in date order and adding new days to
+ * an existing trip.
+ */
+
 public class TripDayController {
 
     @Autowired

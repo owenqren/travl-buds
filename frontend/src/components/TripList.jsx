@@ -1,4 +1,11 @@
-// 1. Accept 'trips' directly as a prop from App.jsx
+/**
+ * TripList displays the user's saved itineraries.
+ *
+ * It renders an empty state when no trips exist and lets users open the details
+ * view for a selected trip.
+ */
+
+// Accept 'trips' directly as a prop from App.jsx
 export default function TripList({ trips, onViewDetails }) {
 
     // Handle the initial state before any data has loaded over the network

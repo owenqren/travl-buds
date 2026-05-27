@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 
+/**
+ * WeatherForecast shows forecast data for the trip destination and dates.
+ *
+ * It geocodes the destination with Open-Meteo, fetches daily weather, converts
+ * temperatures based on user settings, and displays only relevant trip days.
+ */
+
 const weatherDescriptions = {
     0: { label: 'Clear Sky', icon: '☀️' },
     1: { label: 'Mainly Clear', icon: '🌤️' },

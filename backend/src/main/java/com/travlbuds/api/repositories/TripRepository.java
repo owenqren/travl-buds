@@ -7,6 +7,11 @@ import org.springframework.stereotype.Repository;
 
 import com.travlbuds.api.models.Trip;
 
+/**
+ * Repository for Trip persistence.
+ *
+ * Provides standard CRUD operations and a query for loading trips by user id.
+ */
 
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Long> {

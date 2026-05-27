@@ -8,6 +8,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "trip_days")
+
+/**
+ * JPA entity representing one calendar day in a trip itinerary.
+ *
+ * Links a date to its parent trip and owns the activities and voted locations
+ * planned for that day.
+ */
+
 public class TripDay {
 
     @Id

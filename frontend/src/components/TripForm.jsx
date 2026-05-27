@@ -1,5 +1,10 @@
 import { useState } from 'react';
-
+/**
+ * TripForm lets a user create a new trip.
+ *
+ * It collects trip name, destination, start date, and end date, then posts the
+ * trip to the backend and notifies the parent when creation succeeds.
+ */
 export default function TripForm({ onTripAdded }) {
     const [tripData, setTripData] = useState({
         name: '', destination: '', startDate: '', endDate: ''

@@ -17,6 +17,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trips")
 @CrossOrigin(origins = "http://localhost:5173")
+
+/**
+ * REST controller for trip day activities.
+ *
+ * Provides endpoints for listing activities, creating suggestions, and allowing
+ * users to join or leave activities.
+ */
+
 public class TripActivityController {
 
     @Autowired

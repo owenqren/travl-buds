@@ -7,6 +7,14 @@ import java.util.Set;
 
 @Entity
 @Table(name = "activities")
+
+/**
+ * JPA entity representing an activity suggestion for a trip day.
+ *
+ * Tracks the activity details, the user who suggested it, and users interested
+ * in joining it.
+ */
+
 public class TripActivity {
 
     @Id

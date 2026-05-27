@@ -1,3 +1,10 @@
+/*
+ * App-level styles for the frontend shell and starter layout elements.
+ *
+ * Defines reusable visual rules for counters, hero assets, center layout,
+ * next-step sections, spacing, and decorative ticks.
+ */
+ 
 .counter {
   font-size: 16px;
   padding: 5px 10px;

@@ -5,6 +5,13 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "trips")
+
+/**
+ * JPA entity representing a planned trip.
+ *
+ * Stores the trip name, destination, date range, and owning user.
+ */
+
 public class Trip {
     
     @Id

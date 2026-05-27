@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import WeatherForecast from './WeatherForecast';
 
+/**
+ * TripDetails displays and manages a selected trip itinerary.
+ *
+ * It loads trip days, destination suggestions, votes, activities, weather, and
+ * user actions for adding days, suggesting spots, voting, and joining activities.
+ */
+
 export default function TripDetails({ tripId, trip, onBack, units }) {
     const [days, setDays] = useState([]);
     const [selectedDayId, setSelectedDayId] = useState(null);

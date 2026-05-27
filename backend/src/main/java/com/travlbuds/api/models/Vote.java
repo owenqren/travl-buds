@@ -4,6 +4,14 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "votes")
+
+/**
+ * JPA entity representing a user's vote for a suggested location.
+ *
+ * Links one user to one voted location so the app can enforce one vote per user
+ * per trip day.
+ */
+
 public class Vote {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

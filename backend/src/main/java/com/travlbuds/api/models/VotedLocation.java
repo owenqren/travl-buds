@@ -7,6 +7,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "voted_locations")
+
+/**
+ * JPA entity representing a destination or spot suggested for a trip day.
+ *
+ * Stores the suggested location name, its trip day, and the votes cast for it.
+ */
+
 public class VotedLocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
