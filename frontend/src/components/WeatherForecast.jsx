@@ -52,7 +52,7 @@ export default function WeatherForecast({ destination, tripDays, units }) {
                 const { latitude, longitude } = geoData.results[0];
 
                 // Fetch weather forecast
-                return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&forecast_days=16`);
+                return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&past_days=1&forecast_days=16`);
             })
             .then(res => res.json())
             .then(weatherData => {
