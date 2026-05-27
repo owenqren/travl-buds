@@ -17,7 +17,7 @@ TravlBuds lets a group of friends plan a trip together. Each person can suggest 
 - 🗳 **Anonymous voting** — suggest restaurants/spots, vote blindly, results revealed after everyone votes
 - 🎯 **Activity opt-in** — suggest activities, group members join the ones they want
 - 🗺 **Map integration** *(coming soon)* — Google Maps route for each day
-- 🌤 **Weather** *(coming soon)* — forecast for each day of the trip
+- 🌤 **Weather** — forecast for each day of the trip
 - 🤖 **AI planner** *(coming soon)* — Claude/ChatGPT suggests activities based on destination
 
 ## Project Structure
