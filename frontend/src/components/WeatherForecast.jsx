@@ -29,12 +29,12 @@ export default function WeatherForecast({ destination, tripDays, units }) {
     const [error, setError] = useState(null);
 
     const displayTemp = (tempC) => {
-    if (units?.temperature === 'F') {
-        return Math.round((tempC * 9) / 5 + 32);
-    }
+        if (units?.temperature === 'F') {
+            return Math.round((tempC * 9) / 5 + 32);
+        }
 
-    return tempC;
-};
+        return tempC;
+    };
 
     useEffect(() => {
         if (!destination) return;
@@ -71,19 +71,23 @@ export default function WeatherForecast({ destination, tripDays, units }) {
     if (!weather) return null;
 
     // Filter weather to only show days that match trip days
-    const relevantDays = tripDays.map(day => {
-        const index = weather.time.indexOf(day.date);
-        if (index === -1) {
-            return { date: day.date, noData: true };
-        }
-        return {
-            date: day.date,
-            max: Math.round(weather.temperature_2m_max[index]),
-            min: Math.round(weather.temperature_2m_min[index]),
-            code: weather.weathercode[index],
-            noData: false
-        };
-    });
+    const relevantDays = tripDays
+        .map(day => {
+            const index = weather.time.indexOf(day.date);
+
+            if (index === -1) {
+                return { date: day.date, noData: true };
+            }
+
+            return {
+                date: day.date,
+                max: Math.round(weather.temperature_2m_max[index]),
+                min: Math.round(weather.temperature_2m_min[index]),
+                code: weather.weathercode[index],
+                noData: false
+            };
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     if (relevantDays.length === 0) {
         return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>No weather data for trip dates.</p>;
