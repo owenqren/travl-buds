@@ -1,7 +1,9 @@
-package com.fairshare.api.repositories;
+package com.travlbuds.api.repositories;
 
-import com.fairshare.api.models.TripActivity;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.travlbuds.api.models.TripActivity;
+
 import java.util.List;
 
 public interface TripActivityRepository extends JpaRepository<TripActivity, Long> {

@@ -1,8 +1,9 @@
-package com.fairshare.api.repositories;
+package com.travlbuds.api.repositories;
 
-    import com.fairshare.api.models.User;
     import org.springframework.data.jpa.repository.JpaRepository;
     import org.springframework.stereotype.Repository;
+
+import com.travlbuds.api.models.User;
 
     @Repository
     public interface UserRepository extends JpaRepository<User, Long> {

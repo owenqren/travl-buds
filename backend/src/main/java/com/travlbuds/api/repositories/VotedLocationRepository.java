@@ -1,7 +1,9 @@
-package com.fairshare.api.repositories;
+package com.travlbuds.api.repositories;
 
-import com.fairshare.api.models.VotedLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.travlbuds.api.models.VotedLocation;
+
 import java.util.List;
 
 public interface VotedLocationRepository extends JpaRepository<VotedLocation, Long> {

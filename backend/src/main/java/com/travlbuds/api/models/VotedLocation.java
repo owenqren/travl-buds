@@ -1,4 +1,4 @@
-package com.fairshare.api.models;
+package com.travlbuds.api.models;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;

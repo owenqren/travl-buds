@@ -1,7 +1,9 @@
-package com.fairshare.api.repositories;
+package com.travlbuds.api.repositories;
 
-import com.fairshare.api.models.TripDay;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.travlbuds.api.models.TripDay;
+
 import java.util.List;
 
 public interface TripDayRepository extends JpaRepository<TripDay, Long> {

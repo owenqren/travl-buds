@@ -1,4 +1,4 @@
-package com.fairshare.api.dto;
+package com.travlbuds.api.dto;
 
 public class DestinationResponse {
     private Long id;

@@ -1,12 +1,13 @@
-package com.fairshare.api.controller;
+package com.travlbuds.api.controller;
 
-import com.fairshare.api.models.Trip;
-import com.fairshare.api.models.User;
-import com.fairshare.api.repositories.TripRepository;
-import com.fairshare.api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.travlbuds.api.models.Trip;
+import com.travlbuds.api.models.User;
+import com.travlbuds.api.repositories.TripRepository;
+import com.travlbuds.api.repositories.UserRepository;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.fairshare.api;
+package com.travlbuds.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

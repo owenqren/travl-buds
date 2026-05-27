@@ -1,17 +1,18 @@
-package com.fairshare.api.controller;
+package com.travlbuds.api.controller;
 
-import com.fairshare.api.dto.DestinationResponse;
-import com.fairshare.api.models.TripDay;
-import com.fairshare.api.models.User;
-import com.fairshare.api.models.Vote;
-import com.fairshare.api.models.VotedLocation;
-import com.fairshare.api.repositories.TripDayRepository;
-import com.fairshare.api.repositories.UserRepository;
-import com.fairshare.api.repositories.VotedLocationRepository;
-import com.fairshare.api.repositories.VoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.travlbuds.api.dto.DestinationResponse;
+import com.travlbuds.api.models.TripDay;
+import com.travlbuds.api.models.User;
+import com.travlbuds.api.models.Vote;
+import com.travlbuds.api.models.VotedLocation;
+import com.travlbuds.api.repositories.TripDayRepository;
+import com.travlbuds.api.repositories.UserRepository;
+import com.travlbuds.api.repositories.VoteRepository;
+import com.travlbuds.api.repositories.VotedLocationRepository;
 
 import java.util.ArrayList;
 import java.util.List;

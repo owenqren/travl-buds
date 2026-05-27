@@ -1,11 +1,11 @@
-package com.fairshare.api.repositories;
-
-import com.fairshare.api.models.Trip;
+package com.travlbuds.api.repositories;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.travlbuds.api.models.Trip;
 
 
 @Repository
