@@ -24,7 +24,7 @@ TravlBuds lets a group of friends plan a trip together. Each person can suggest 
 ```
 travlbuds/
 ├── backend/                  # Spring Boot API
-│   └── src/main/java/com/fairshare/api/
+│   └── src/main/java/com/travlbuds/api/
 │       ├── controller/       # REST endpoints
 │       ├── models/           # JPA entities
 │       ├── repositories/     # Spring Data repositories
@@ -74,7 +74,7 @@ travlbuds/
 ```bash
 cd backend
 # Create the database
-psql -U your_username -c "CREATE DATABASE fairshare;"
+psql -U your_username -c "CREATE DATABASE travlbuds;"
 # Run the app
 ./mvnw spring-boot:run
 ```
