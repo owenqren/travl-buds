@@ -22,7 +22,7 @@ TravlBuds lets a group of friends plan a trip together. Each person can suggest 
 
 ## Project Structure
 ```
-fairshare-travel/
+travlbuds/
 ├── backend/                  # Spring Boot API
 │   └── src/main/java/com/fairshare/api/
 │       ├── controller/       # REST endpoints
