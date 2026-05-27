@@ -6,6 +6,8 @@ import './App.css';
 
 function App() {
     const [trips, setTrips] = useState([]);
+    const [showSettings, setShowSettings] = useState(false);
+    const [units, setUnits] = useState({ temperature: 'C', distance: 'km' });
 
     //Track which trip the user wants to look at (null means show the main dashboard)
     const [selectedTripId, setSelectedTripId] = useState(null);
@@ -30,20 +32,76 @@ function App() {
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
             <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <h1 style={{ color: '#2c3e50' }}>TravlBuds</h1>
-                <p style={{ color: '#7f8c8d' }}>Collaborative vacation planning</p>
+                <h1 style={{ color: '#2c3e50', margin: '0 0 8px' }}>TravlBuds</h1>
+                <p style={{ color: '#7f8c8d', margin: '0 0 12px' }}>
+                    Collaborative vacation planning
+                </p>
+
+                <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#f0f0f0',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    ⚙️ Settings
+                </button>
             </header>
 
-            {/*THE CONDITIONAL RENDER */}
+            {/* SETTINGS PANEL */}
+            {showSettings && (
+                <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+                    <h3 style={{ marginTop: 0, color: '#2c3e50' }}>Settings</h3>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <p style={{ fontWeight: 'bold', color: '#2c3e50', marginBottom: '8px' }}>Temperature</p>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setUnits({ ...units, temperature: 'C' })}
+                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.temperature === 'C' ? '#2c3e50' : '#fff', color: units.temperature === 'C' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
+                            >
+                                °C
+                            </button>
+                            <button
+                                onClick={() => setUnits({ ...units, temperature: 'F' })}
+                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.temperature === 'F' ? '#2c3e50' : '#fff', color: units.temperature === 'F' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
+                            >
+                                °F
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p style={{ fontWeight: 'bold', color: '#2c3e50', marginBottom: '8px' }}>Distance</p>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setUnits({ ...units, distance: 'km' })}
+                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.distance === 'km' ? '#2c3e50' : '#fff', color: units.distance === 'km' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
+                            >
+                                km
+                            </button>
+                            <button
+                                onClick={() => setUnits({ ...units, distance: 'mi' })}
+                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.distance === 'mi' ? '#2c3e50' : '#fff', color: units.distance === 'mi' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
+                            >
+                                mi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {selectedTripId ? (
-                // IF a trip is selected, only show the Details page
                 <TripDetails
                     tripId={selectedTripId}
                     trip={trips.find(t => t.id === selectedTripId)}
                     onBack={() => setSelectedTripId(null)}
+                    units={units}
                 />
             ) : (
-                // ELSE, show the normal dashboard
                 <>
                     <TripForm onTripAdded={handleTripAdded} />
                     <hr style={{ margin: '40px 0', border: 'none', borderTop: '1px solid #eee' }} />

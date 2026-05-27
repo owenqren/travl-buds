@@ -23,10 +23,18 @@ const weatherDescriptions = {
     99: { label: 'Thunderstorm', icon: '⛈️' },
 };
 
-export default function WeatherForecast({ destination, tripDays }) {
+export default function WeatherForecast({ destination, tripDays, units }) {
     const [weather, setWeather] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const displayTemp = (tempC) => {
+    if (units?.temperature === 'F') {
+        return Math.round((tempC * 9) / 5 + 32);
+    }
+
+    return tempC;
+};
 
     useEffect(() => {
         if (!destination) return;
@@ -43,7 +51,7 @@ export default function WeatherForecast({ destination, tripDays }) {
 
                 const { latitude, longitude } = geoData.results[0];
 
-                // Step 2: Fetch weather forecast
+                // Fetch weather forecast
                 return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&forecast_days=16`);
             })
             .then(res => res.json())
@@ -145,7 +153,7 @@ export default function WeatherForecast({ destination, tripDays }) {
                             <p style={{ fontSize: '24px', margin: '0 0 4px' }}>{w.icon}</p>
                             <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{w.label}</p>
                             <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50', margin: 0 }}>
-                                {day.max}° / {day.min}°
+                                {displayTemp(day.max)}° / {displayTemp(day.min)}°
                             </p>
                         </div>
                     );

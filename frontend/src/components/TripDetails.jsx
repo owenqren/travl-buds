@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import WeatherForecast from './WeatherForecast';
 
-export default function TripDetails({ tripId, trip, onBack }) {
+export default function TripDetails({ tripId, trip, onBack, units }) {
     const [days, setDays] = useState([]);
     const [selectedDayId, setSelectedDayId] = useState(null);
     const [votedLocations, setVotedLocations] = useState([]);
@@ -164,7 +164,7 @@ export default function TripDetails({ tripId, trip, onBack }) {
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid #ddd', marginBottom: '20px' }} />
-            <WeatherForecast destination={trip?.destination} tripDays={days} />
+            <WeatherForecast destination={trip?.destination} tripDays={days} units={units} />
 
             {!selectedDayId ? (
                 <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Add a day above to get started!</p>
