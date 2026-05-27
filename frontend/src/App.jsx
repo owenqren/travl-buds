@@ -41,10 +41,13 @@ function App() {
                     onClick={() => setShowSettings(!showSettings)}
                     style={{
                         padding: '8px 12px',
-                        backgroundColor: '#f0f0f0',
-                        border: '1px solid #ccc',
+                        backgroundColor: '#ffffff',
+                        color: '#2c3e50',
+                        border: '1px solid #b8c2cc',
                         borderRadius: '4px',
                         cursor: 'pointer',
+                        fontWeight: 'bold',
+
                     }}
                 >
                     ⚙️ Settings
