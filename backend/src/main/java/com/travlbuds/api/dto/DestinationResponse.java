@@ -1,5 +1,7 @@
 package com.travlbuds.api.dto;
 
+import java.time.LocalTime;
+
 /**
  * DTO returned for destination voting results.
  *
@@ -10,16 +12,36 @@ package com.travlbuds.api.dto;
 public class DestinationResponse {
     private Long id;
     private String name;
+    private String address;
     private Integer voteCount; // Use Integer so it can be 'null'
+    private LocalTime visitTime;
 
-    public DestinationResponse(Long id, String name, Integer voteCount) {
+    public DestinationResponse(Long id, String name, String address, LocalTime visitTime, Integer voteCount) {
         this.id = id;
         this.name = name;
+        this.address = address;
+        this.visitTime = visitTime;
         this.voteCount = voteCount;
     }
 
     // Getters
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public Integer getVoteCount() { return voteCount; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Integer getVoteCount() {
+        return voteCount;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public LocalTime getVisitTime() {
+        return visitTime;
+    }
 }

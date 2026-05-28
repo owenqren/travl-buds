@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import WeatherForecast from './WeatherForecast';
 import TripMap from './TripMap';
+import VoteSpotMap from './VoteSpotMap';
 
 /**
  * TripDetails displays and manages a selected trip itinerary.
@@ -16,9 +17,16 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newLocation, setNewLocation] = useState('');
-    const [newActivity, setNewActivity] = useState({ name: '', category: '' });
+    const [newActivity, setNewActivity] = useState({
+        name: '',
+        category: '',
+        address: '',
+        visitTime: ''
+    });
+    const [newLocationAddress, setNewLocationAddress] = useState('');
     const [hasVoted, setHasVoted] = useState(false);
     const [newDayDate, setNewDayDate] = useState(null);
+    const [newLocationVisitTime, setNewLocationVisitTime] = useState('');
 
     // TODO: remove later
     const currentUserId = 1;
@@ -84,21 +92,34 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     };
 
     const handleAddLocation = () => {
-        if (!newLocation.trim() || !selectedDayId) return;
+        if (!newLocation.trim() || !newLocationAddress.trim() || !newLocationVisitTime || !selectedDayId) {
+            return;
+        }
+
         fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/destinations?userId=${currentUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: newLocation })
+            body: JSON.stringify({
+                name: newLocation,
+                address: newLocationAddress,
+                visitTime: newLocationVisitTime
+            })
         })
             .then(res => res.json())
             .then(data => {
                 setVotedLocations(prev => [...prev, data]);
                 setNewLocation('');
+                setNewLocationAddress('');
+                setNewLocationVisitTime('');
+
             });
     };
 
     const handleAddActivity = () => {
-        if (!newActivity.name.trim() || !selectedDayId) return;
+        if (!newActivity.name.trim() || !newActivity.address.trim() || !newActivity.visitTime || !selectedDayId) {
+            return;
+        }
+
         fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/activities?userId=${currentUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -108,7 +129,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             .then(res => res.json())
             .then(data => {
                 setActivities(data);
-                setNewActivity({ name: '', category: '' });
+                setNewActivity({ name: '', category: '', address: '', visitTime: '' });
             });
     };
 
@@ -120,6 +141,24 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             .then(res => res.json())
             .then(data => setActivities(data));
     };
+
+    const dayStops = [
+        ...activities.map(activity => ({
+            id: `activity-${activity.id}`,
+            name: activity.name,
+            address: activity.address,
+            visitTime: activity.visitTime,
+            type: 'Activity'
+        })),
+        ...votedLocations.map(location => ({
+            id: `spot-${location.id}`,
+            name: location.name,
+            address: location.address,
+            visitTime: location.visitTime,
+            type: 'Vote Spot'
+        }))
+    ].filter(stop => stop.address && stop.visitTime)
+        .sort((a, b) => a.visitTime.localeCompare(b.visitTime));
 
     if (loading) return <p>Loading...</p>;
 
@@ -174,6 +213,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
 
             <hr style={{ border: 'none', borderTop: '1px solid #ddd', marginBottom: '20px' }} />
             <WeatherForecast destination={trip?.destination} tripDays={days} units={units} />
+            <VoteSpotMap locations={dayStops} destination={trip?.destination} />
 
             {!selectedDayId ? (
                 <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Add a day above to get started!</p>
@@ -197,6 +237,17 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                                     <span style={{ marginLeft: '8px', fontSize: '12px', color: '#7f8c8d', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '10px' }}>
                                                         {activity.category}
                                                     </span>
+                                                )}
+
+                                                {activity.address && (
+                                                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
+                                                        📍 {activity.address}
+                                                    </p>
+                                                )}
+                                                {activity.visitTime && (
+                                                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
+                                                        🕒 {activity.visitTime}
+                                                    </p>
                                                 )}
                                             </div>
                                             <button
@@ -231,6 +282,23 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                 onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
                                 style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
                             />
+                            <input
+                                type="text"
+                                placeholder="Precise address required"
+                                value={newActivity.address}
+                                required
+                                onChange={e => setNewActivity({ ...newActivity, address: e.target.value })}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
+                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                            />
+                            <input
+                                type="time"
+                                value={newActivity.visitTime}
+                                required
+                                onChange={e => setNewActivity({ ...newActivity, visitTime: e.target.value })}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
+                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                            />
                             <button
                                 onClick={handleAddActivity}
                                 style={{ width: '100%', padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -262,6 +330,17 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                                     {loc.voteCount} vote{loc.voteCount !== 1 ? 's' : ''}
                                                 </span>
                                             )}
+
+                                            {loc.address && (
+                                                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
+                                                    📍 {loc.address}
+                                                </p>
+                                            )}
+                                            {loc.visitTime && (
+                                                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
+                                                    🕒 {loc.visitTime}
+                                                </p>
+                                            )}
                                         </div>
                                         {!hasVoted && (
                                             <button
@@ -275,13 +354,31 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                 ))}
                             </ul>
                         )}
-
+                        {/* Voting suggest a spot */}
                         <div style={{ marginTop: '15px' }}>
                             <input
                                 type="text"
-                                placeholder="e.g. Nobu, Shake Shack"
+                                placeholder="Spot name"
                                 value={newLocation}
+                                required
                                 onChange={e => setNewLocation(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
+                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Precise address required"
+                                value={newLocationAddress}
+                                required
+                                onChange={e => setNewLocationAddress(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
+                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                            />
+                            <input
+                                type="time"
+                                value={newLocationVisitTime}
+                                required
+                                onChange={e => setNewLocationVisitTime(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
                                 style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
                             />

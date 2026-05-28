@@ -25,7 +25,8 @@ import java.util.List;
  * REST controller for destination suggestions and voting.
  *
  * Handles blind destination voting by hiding vote counts until the user has
- * voted, and validates that votes and destinations belong to the selected trip day.
+ * voted, and validates that votes and destinations belong to the selected trip
+ * day.
  */
 
 public class VotingController {
@@ -67,7 +68,12 @@ public class VotingController {
             if (hasVoted) {
                 voteCount = loc.getVotes().size();
             }
-            responseList.add(new DestinationResponse(loc.getId(), loc.getName(), voteCount));
+            responseList.add(new DestinationResponse(
+                    loc.getId(),
+                    loc.getName(),
+                    loc.getAddress(),
+                    loc.getVisitTime(),
+                    voteCount));
         }
 
         return ResponseEntity.ok(responseList);
