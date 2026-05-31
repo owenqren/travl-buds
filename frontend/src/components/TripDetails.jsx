@@ -27,6 +27,9 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const [hasVoted, setHasVoted] = useState(false);
     const [newDayDate, setNewDayDate] = useState(null);
     const [newLocationVisitTime, setNewLocationVisitTime] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiMessages, setAiMessages] = useState([]);
+    const [aiInput, setAiInput] = useState('');
 
     // TODO: remove later
     const currentUserId = 1;
@@ -113,6 +116,59 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                 setNewLocationVisitTime('');
 
             });
+    };
+
+    const sendAiMessage = async (message) => {
+        const trimmedMessage = message?.trim();
+
+        if (!trimmedMessage) return;
+
+        const userMessage = { role: 'user', content: trimmedMessage };
+        setAiMessages(prev => [...prev, userMessage]);
+        setAiLoading(true);
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/suggestions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    destination: trip?.destination,
+                    date: days.find(day => day.id === selectedDayId)?.date,
+                    message: trimmedMessage
+                })
+            });
+
+            const data = await response.json();
+            const reply = data.choices?.[0]?.message?.content || 'No response returned.';
+
+            setAiMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+        } catch (error) {
+            console.error('AI chat failed:', error);
+            setAiMessages(prev => [
+                ...prev,
+                { role: 'assistant', content: 'Could not reach the AI assistant.' }
+            ]);
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    const handleSuggestIdeas = () => {
+        const selectedDay = days.find(day => day.id === selectedDayId);
+
+        sendAiMessage(`
+            Suggest 5 realistic activities or food spots for this trip day.
+
+            Destination: ${trip?.destination}
+            Date: ${selectedDay?.date}
+
+            For each idea, include:
+            - name
+            - category
+            - why it is good
+            - best time of day
+            - remind me to verify the precise address
+            `);
     };
 
     const handleAddActivity = () => {
@@ -224,6 +280,72 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                     <div style={{ flex: 1, minWidth: '280px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
                         <h3 style={{ marginTop: 0, color: '#27ae60' }}>Activity Ideas</h3>
 
+                        <div style={{ backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
+                            <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                                {aiMessages.length === 0 ? (
+                                    <p style={{ margin: 0, color: '#7f8c8d', fontSize: '14px' }}>
+                                        Ask for trip ideas or use the suggestion button.
+                                    </p>
+                                ) : (
+                                    aiMessages.map((message, index) => (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
+                                                maxWidth: '85%',
+                                                padding: '8px 10px',
+                                                borderRadius: '8px',
+                                                backgroundColor: message.role === 'user' ? '#2c3e50' : '#fff',
+                                                color: message.role === 'user' ? '#fff' : '#2c3e50',
+                                                border: message.role === 'user' ? 'none' : '1px solid #ddd',
+                                                whiteSpace: 'pre-wrap',
+                                                fontSize: '13px',
+                                                lineHeight: '1.4'
+                                            }}
+                                        >
+                                            {message.content}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Ask the AI..."
+                                    value={aiInput}
+                                    onChange={e => setAiInput(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') {
+                                            sendAiMessage(aiInput);
+                                            setAiInput('');
+                                        }
+                                    }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        sendAiMessage(aiInput);
+                                        setAiInput('');
+                                    }}
+                                    disabled={aiLoading || !aiInput.trim()}
+                                    style={{ padding: '8px 12px', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: '4px', cursor: aiLoading || !aiInput.trim() ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                                >
+                                    Send
+                                </button>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleSuggestIdeas}
+                                disabled={aiLoading || !selectedDayId}
+                                style={{ width: '100%', padding: '9px', marginTop: '8px', backgroundColor: aiLoading ? '#95a5a6' : '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: aiLoading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                            >
+                                {aiLoading ? 'Thinking...' : 'Suggest Ideas'}
+                            </button>
+                        </div>
+
                         {activities.length === 0 ? (
                             <p style={{ color: '#7f8c8d' }}>No activities yet. Add one below!</p>
                         ) : (
@@ -308,9 +430,9 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                         </div>
                     </div>
 
-                    {/* VOTE ON A SPOT SECTION */}
+                    {/* VOTE ON A RESTAURANT SECTION */}
                     <div style={{ flex: 1, minWidth: '280px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
-                        <h3 style={{ marginTop: 0, color: '#e74c3c' }}>Vote on a Spot</h3>
+                        <h3 style={{ marginTop: 0, color: '#e74c3c' }}>Vote on a Restaurant</h3>
                         {!hasVoted && (
                             <p style={{ fontSize: '13px', color: '#e67e22', marginBottom: '10px' }}>
                                 Cast your vote to see the results!
@@ -354,6 +476,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                 ))}
                             </ul>
                         )}
+
                         {/* Voting suggest a spot */}
                         <div style={{ marginTop: '15px' }}>
                             <input
@@ -390,7 +513,6 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                             </button>
                         </div>
                     </div>
-
                 </div>
             )}
         </div>

@@ -24,20 +24,18 @@ public class AIController {
 
     @PostMapping("/suggestions")
     public ResponseEntity<?> getSuggestions(@RequestBody AiSuggestionRequest request) {
+        if (request.message() == null || request.message().isBlank()) {
+            return ResponseEntity.badRequest().body("Message is required.");
+        }
         try {
             String prompt = """
-                    Suggest 5 realistic travel activities or food spots for this trip.
-
+                    Trip context:
                     Destination: %s
                     Date: %s
 
-                    Return concise suggestions. Each suggestion should include:
-                    - name
-                    - category
-                    - why it is good
-                    - a reminder to verify the precise address
-                    """.formatted(request.destination(), request.date());
-
+                    User request:
+                    %s
+                    """.formatted(request.destination(), request.date(), request.message());
             String jsonBody = """
                     {
                       "model": "%s",
@@ -65,8 +63,7 @@ public class AIController {
 
             HttpResponse<String> groqResponse = httpClient.send(
                     groqRequest,
-                    HttpResponse.BodyHandlers.ofString()
-            );
+                    HttpResponse.BodyHandlers.ofString());
 
             return ResponseEntity
                     .status(groqResponse.statusCode())
@@ -87,6 +84,6 @@ public class AIController {
                 .replace("\r", "\\r") + "\"";
     }
 
-    public record AiSuggestionRequest(String destination, String date) {
+    public record AiSuggestionRequest(String destination, String date, String message) {
     }
 }
