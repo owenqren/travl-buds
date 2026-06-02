@@ -100,6 +100,3 @@ INSERT INTO users (username, email) VALUES ('testuser', 'test@test.com');
 ## Roadmap
 - [ ] Authentication (replace hardcoded `userId=1`)
 - [ ] Day-by-day itinerary structure
-- [ ] Google Maps integration
-- [ ] Weather API
-- [ ] AI trip planner
