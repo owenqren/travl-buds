@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import TripForm from './components/TripForm';
 import TripList from './components/TripList';
 import TripDetails from './components/TripDetails';
@@ -13,9 +14,6 @@ function App() {
     const [trips, setTrips] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
     const [units, setUnits] = useState({ temperature: 'C', distance: 'km' });
-
-    //Track which trip the user wants to look at (null means show the main dashboard)
-    const [selectedTripId, setSelectedTripId] = useState(null);
 
     // TODO: Remove later
     const currentUserId = 1;
@@ -32,6 +30,16 @@ function App() {
 
     const handleTripAdded = (newTrip) => {
         setTrips(prevTrips => [...prevTrips, newTrip]);
+    };
+
+    const navigate = useNavigate();
+
+    const handleViewTripDetails = (tripId) => {
+        navigate(`/trips/${tripId}`);
+    };
+
+    const handleBackToTrips = () => {
+        navigate('/');
     };
 
     return (
@@ -102,21 +110,42 @@ function App() {
                 </div>
             )}
 
-            {selectedTripId ? (
-                <TripDetails
-                    tripId={selectedTripId}
-                    trip={trips.find(t => t.id === selectedTripId)}
-                    onBack={() => setSelectedTripId(null)}
-                    units={units}
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <>
+                            <TripForm onTripAdded={handleTripAdded} />
+                            <hr style={{ margin: '40px 0', border: 'none', borderTop: '1px solid #eee' }} />
+                            <TripList trips={trips} onViewDetails={handleViewTripDetails} />
+                        </>
+                    }
                 />
-            ) : (
-                <>
-                    <TripForm onTripAdded={handleTripAdded} />
-                    <hr style={{ margin: '40px 0', border: 'none', borderTop: '1px solid #eee' }} />
-                    <TripList trips={trips} onViewDetails={setSelectedTripId} />
-                </>
-            )}
+                <Route
+                    path="/trips/:tripId"
+                    element={
+                        <TripDetailsRoute
+                            trips={trips}
+                            onBack={handleBackToTrips}
+                            units={units}
+                        />
+                    }
+                />
+            </Routes>
         </div>
+    );
+}
+function TripDetailsRoute({ trips, onBack, units }) {
+    const { tripId } = useParams();
+    const numericTripId = Number(tripId);
+
+    return (
+        <TripDetails
+            tripId={numericTripId}
+            trip={trips.find(t => t.id === numericTripId)}
+            onBack={onBack}
+            units={units}
+        />
     );
 }
 
