@@ -1,6 +1,7 @@
 package com.travlbuds.api.models;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users") // "user" is a reserved word in Postgres, so we use "users"
@@ -16,6 +17,21 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String username;
+    private String email;
+
+    @JsonIgnore
+    private String passwordHash;
+
+    // Empty constructor required by JPA
+    public User() {
+    }
+
+    public User(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
 
     public Long getId() {
         return id;
@@ -41,15 +57,11 @@ public class User {
         this.email = email;
     }
 
-    private String username;
-    private String email;
-
-    // Empty constructor required by JPA
-    public User() {
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public User(String username, String email) {
-        this.username = username;
-        this.email = email;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

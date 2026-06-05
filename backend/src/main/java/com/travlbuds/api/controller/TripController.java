@@ -9,6 +9,9 @@ import com.travlbuds.api.models.User;
 import com.travlbuds.api.repositories.TripRepository;
 import com.travlbuds.api.repositories.UserRepository;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.List;
 
 @RestController
@@ -31,21 +34,37 @@ public class TripController {
     private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<List<Trip>> getUserTrips(@RequestParam Long userId) {
-        List<Trip> userTrips = tripRepository.findByUserId(userId);
+    public ResponseEntity<?> getUserTrips() {
+        User user = getCurrentUser();
+
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized.");
+        }
+
+        List<Trip> userTrips = tripRepository.findByUserId(user.getId());
         return ResponseEntity.ok(userTrips);
     }
 
     @PostMapping
-    public ResponseEntity<?> createTrip(@RequestParam Long userId, @RequestBody Trip trip) {
-        User user = userRepository.findById(userId).orElse(null);
+    public ResponseEntity<?> createTrip(@RequestBody Trip trip) {
+        User user = getCurrentUser();
 
         if (user == null) {
-            return ResponseEntity.status(404).body("Error: User not found.");
+            return ResponseEntity.status(401).body("Unauthorized.");
         }
 
         trip.setUser(user);
         Trip savedTrip = tripRepository.save(trip);
         return ResponseEntity.ok(savedTrip);
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            return null;
+        }
+
+        return user;
     }
 }

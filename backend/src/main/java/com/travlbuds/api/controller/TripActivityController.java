@@ -12,6 +12,9 @@ import com.travlbuds.api.repositories.TripActivityRepository;
 import com.travlbuds.api.repositories.TripDayRepository;
 import com.travlbuds.api.repositories.UserRepository;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.List;
 
 @RestController
@@ -33,9 +36,6 @@ public class TripActivityController {
     @Autowired
     private TripDayRepository tripDayRepo;
 
-    @Autowired
-    private UserRepository userRepo;
-
     // GET ALL ACTIVITIES FOR A DAY
     @Transactional
     @GetMapping("/{tripId}/days/{dayId}/activities")
@@ -47,11 +47,10 @@ public class TripActivityController {
     @PostMapping("/{tripId}/days/{dayId}/activities")
     public ResponseEntity<String> createActivity(
             @PathVariable Long dayId,
-            @RequestParam Long userId,
             @RequestBody TripActivity activityRequest) {
 
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
-        User user = userRepo.findById(userId).orElse(null);
+        User user = getCurrentUser();
 
         if (tripDay == null || user == null) {
             return ResponseEntity.status(404).body("Day or User not found.");
@@ -66,16 +65,14 @@ public class TripActivityController {
     // OPT-IN TO AN ACTIVITY
     @Transactional
     @PostMapping("/{tripId}/days/{dayId}/activities/{activityId}/join")
-    public ResponseEntity<String> joinActivity(
-            @PathVariable Long activityId,
-            @RequestParam Long userId) {
-
-        User user = userRepo.findById(userId).orElse(null);
+    public ResponseEntity<String> joinActivity(@PathVariable Long activityId) {
+        User user = getCurrentUser();
         TripActivity activity = activityRepo.findById(activityId).orElse(null);
 
         if (user == null || activity == null) {
             return ResponseEntity.status(404).body("User or Activity not found.");
         }
+
         if (activity.getInterestedUsers().contains(user)) {
             return ResponseEntity.badRequest().body("You have already joined this activity.");
         }
@@ -88,11 +85,8 @@ public class TripActivityController {
     // OPT-OUT OF AN ACTIVITY
     @Transactional
     @DeleteMapping("/{tripId}/days/{dayId}/activities/{activityId}/leave")
-    public ResponseEntity<String> leaveActivity(
-            @PathVariable Long activityId,
-            @RequestParam Long userId) {
-
-        User user = userRepo.findById(userId).orElse(null);
+    public ResponseEntity<String> leaveActivity(@PathVariable Long activityId) {
+        User user = getCurrentUser();
         TripActivity activity = activityRepo.findById(activityId).orElse(null);
 
         if (user == null || activity == null) {
@@ -102,5 +96,15 @@ public class TripActivityController {
         activity.getInterestedUsers().remove(user);
         activityRepo.save(activity);
         return ResponseEntity.ok("Successfully left the activity!");
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            return null;
+        }
+
+        return user;
     }
 }

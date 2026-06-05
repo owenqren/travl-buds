@@ -14,6 +14,9 @@ import com.travlbuds.api.repositories.UserRepository;
 import com.travlbuds.api.repositories.VoteRepository;
 import com.travlbuds.api.repositories.VotedLocationRepository;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,29 +41,32 @@ public class VotingController {
     private VoteRepository voteRepo;
 
     @Autowired
-    private UserRepository userRepo;
-
-    @Autowired
     private TripDayRepository tripDayRepo;
 
     // GET VOTED LOCATIONS FOR A DAY (Blind Logic)
     @GetMapping("/{tripId}/days/{dayId}/destinations")
     public ResponseEntity<?> getDestinations(
             @PathVariable Long tripId,
-            @PathVariable Long dayId,
-            @RequestParam Long userId) {
+            @PathVariable Long dayId) {
+
+        User user = getCurrentUser();
+
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized.");
+        }
 
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
 
         if (tripDay == null) {
             return ResponseEntity.status(404).body("Day not found.");
         }
+
         if (!tripDay.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Day does not belong to this trip.");
         }
 
         List<VotedLocation> locations = votedLocationRepo.findByTripDayId(dayId);
-        boolean hasVoted = voteRepo.existsByUserIdAndVotedLocationTripDayId(userId, dayId);
+        boolean hasVoted = voteRepo.existsByUserIdAndVotedLocationTripDayId(user.getId(), dayId);
         List<DestinationResponse> responseList = new ArrayList<>();
 
         for (VotedLocation loc : locations) {
@@ -68,6 +74,7 @@ public class VotingController {
             if (hasVoted) {
                 voteCount = loc.getVotes().size();
             }
+
             responseList.add(new DestinationResponse(
                     loc.getId(),
                     loc.getName(),
@@ -84,24 +91,28 @@ public class VotingController {
     public ResponseEntity<String> castVote(
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @RequestParam Long userId,
             @RequestParam Long votedLocationId) {
 
-        User user = userRepo.findById(userId).orElse(null);
+        User user = getCurrentUser();
         VotedLocation location = votedLocationRepo.findById(votedLocationId).orElse(null);
 
-        if (user == null)
-            return ResponseEntity.status(404).body("User not found.");
-        if (location == null)
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized.");
+        }
+
+        if (location == null) {
             return ResponseEntity.status(404).body("Location not found.");
+        }
 
         if (!location.getTripDay().getId().equals(dayId)) {
             return ResponseEntity.badRequest().body("Location does not belong to this day.");
         }
+
         if (!location.getTripDay().getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Location does not belong to this trip.");
         }
-        if (voteRepo.existsByUserIdAndVotedLocationTripDayId(userId, dayId)) {
+
+        if (voteRepo.existsByUserIdAndVotedLocationTripDayId(user.getId(), dayId)) {
             return ResponseEntity.badRequest().body("You have already voted for this day!");
         }
 
@@ -114,17 +125,17 @@ public class VotingController {
     public ResponseEntity<?> addDestination(
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @RequestParam Long userId,
             @RequestBody VotedLocation locationRequest) {
 
+        User user = getCurrentUser();
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
-        User user = userRepo.findById(userId).orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized.");
+        }
 
         if (tripDay == null) {
             return ResponseEntity.status(404).body("Day not found.");
-        }
-        if (user == null) {
-            return ResponseEntity.status(404).body("User not found.");
         }
 
         if (!tripDay.getTrip().getId().equals(tripId)) {
@@ -134,5 +145,15 @@ public class VotingController {
         locationRequest.setTripDay(tripDay);
         votedLocationRepo.save(locationRequest);
         return ResponseEntity.ok(locationRequest);
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            return null;
+        }
+
+        return user;
     }
 }
