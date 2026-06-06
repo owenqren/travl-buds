@@ -13,12 +13,13 @@ TravlBuds lets a group of friends plan a trip together. Each person can suggest 
 | ORM | Hibernate / Spring Data JPA |
 
 ## Features
-- 🗓 **Day-by-day itinerary** — activities and voted locations organized by day
+- 🔒 **Secure authentication** — user signup and login to keep your trips, groups, and votes completely private
+- 🗓 **Day-by-day itinerary** — activities and voted locations seamlessly organized by day
 - 🗳 **Anonymous voting** — suggest restaurants/spots, vote blindly, results revealed after everyone votes
 - 🎯 **Activity opt-in** — suggest activities, group members join the ones they want
-- 🗺 **Map integration** *(coming soon)* — Google Maps route for each day
+- 🗺 **Map integration** — Google Maps route for each day
 - 🌤 **Weather** — forecast for each day of the trip
-- 🤖 **AI planner** *(coming soon)* — Claude/ChatGPT suggests activities based on destination
+- 🤖 **AI planner** — Groq suggests activities based on destination
 
 ## Project Structure
 ```
@@ -70,36 +71,7 @@ travlbuds/
 - PostgreSQL 18
 - Node.js + npm
 
-### Backend Setup
-```bash
-cd backend
-# Create the database
-psql -U your_username -c "CREATE DATABASE travlbuds;"
-# Run the app
-./mvnw spring-boot:run
-```
-
-### Frontend Setup
-```bash
-cd frontend
-# Create .env file
-echo "VITE_API_URL=http://localhost:8080" > .env
-# Install dependencies and run
-npm install
-npm run dev
-```
-
 ### Database
 The app uses `spring.jpa.hibernate.ddl-auto=update` so tables are created automatically on first run.
 
-To add a test user:
-```sql
-INSERT INTO users (username, email) VALUES ('testuser', 'test@test.com');
-```
-
 ## Roadmap
-- [ ] Authentication (replace hardcoded `userId=1`)
-- [ ] Day-by-day itinerary structure
-- [ ] Google Maps integration
-- [ ] Weather API
-- [ ] AI trip planner
