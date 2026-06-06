@@ -1,4 +1,7 @@
 import { useState } from 'react';
+
+import { authFetch } from '../utils/authFetch';
+
 /**
  * TripForm lets a user create a new trip.
  *
@@ -10,16 +13,12 @@ export default function TripForm({ onTripAdded }) {
         name: '', destination: '', startDate: '', endDate: ''
     });
 
-    // TODO: remove later
-    const currentUserId = 1;
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/trips?userId=${currentUserId}`, {
+            const response = await authFetch('/api/trips', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(tripData)
             });
             if (response.ok) {

@@ -44,21 +44,26 @@ export default function WeatherForecast({ destination, tripDays, units }) {
     };
 
     useEffect(() => {
-        if (!destination) return;
+        if (!destination) {
+            setWeather(null);
+            setError(null);
+            setLoading(false);
+            return;
+        }
 
-        //Geocode the destination
+        setLoading(true);
+        setError(null);
+        setWeather(null);
+
         fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1`)
             .then(res => res.json())
             .then(geoData => {
                 if (!geoData.results || geoData.results.length === 0) {
-                    setError('Could not find location.');
-                    setLoading(false);
-                    return;
+                    throw new Error('Could not find location.');
                 }
 
                 const { latitude, longitude } = geoData.results[0];
 
-                // Fetch weather forecast
                 return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&past_days=1&forecast_days=16`);
             })
             .then(res => res.json())
@@ -68,14 +73,16 @@ export default function WeatherForecast({ destination, tripDays, units }) {
             })
             .catch(err => {
                 console.error("Weather fetch failed:", err);
-                setError('Failed to load weather.');
+                setError(err.message || 'Failed to load weather.');
                 setLoading(false);
             });
     }, [destination]);
 
     if (loading) return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>Loading weather...</p>;
     if (error) return <p style={{ color: '#e74c3c', fontSize: '14px' }}>{error}</p>;
-    if (!weather) return null;
+    if (!weather) {
+        return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>No weather data available.</p>;
+    }
 
     // Filter weather to only show days that match trip days
     const relevantDays = tripDays

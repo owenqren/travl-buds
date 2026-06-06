@@ -4,6 +4,9 @@ import TripForm from './components/TripForm';
 import TripList from './components/TripList';
 import TripDetails from './components/TripDetails';
 import './App.css';
+import LoginForm from './components/LoginForm';
+import { authFetch } from './utils/authFetch';
+
 /**
  * App coordinates the main TravlBuds dashboard.
  *
@@ -15,18 +18,22 @@ function App() {
     const [showSettings, setShowSettings] = useState(false);
     const [units, setUnits] = useState({ temperature: 'C', distance: 'km' });
 
-    // TODO: Remove later
-    const currentUserId = 1;
+    const [currentUser, setCurrentUser] = useState(() => {
+        const savedUser = localStorage.getItem('travlbudsUser');
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
 
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips?userId=${currentUserId}`)
+        if (!currentUser) return;
+
+        authFetch('/api/trips')
             .then(res => {
                 if (!res.ok) throw new Error("Backend rejected the request!");
                 return res.json();
             })
             .then(data => setTrips(data))
             .catch(err => console.error("Error fetching trips:", err));
-    }, []);
+    }, [currentUser]);
 
     const handleTripAdded = (newTrip) => {
         setTrips(prevTrips => [...prevTrips, newTrip]);
@@ -41,6 +48,36 @@ function App() {
     const handleBackToTrips = () => {
         navigate('/');
     };
+
+    const handleLogin = (authResponse) => {
+        const { token, ...user } = authResponse;
+
+        localStorage.setItem('travlbudsToken', token);
+        localStorage.setItem('travlbudsUser', JSON.stringify(user));
+
+        setCurrentUser(user);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('travlbudsToken');
+        localStorage.removeItem('travlbudsUser');
+        setCurrentUser(null);
+        setTrips([]);
+        navigate('/');
+    };
+
+    if (!currentUser) {
+        return (
+            <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
+                <header style={{ textAlign: 'center', marginBottom: '30px' }}>
+                    <h1 style={{ color: '#2c3e50', margin: '0 0 8px' }}>TravlBuds</h1>
+                    <p style={{ color: '#7f8c8d', margin: 0 }}>Collaborative vacation planning</p>
+                </header>
+
+                <LoginForm onLogin={handleLogin} />
+            </div>
+        );
+    }
 
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -62,8 +99,25 @@ function App() {
                         fontWeight: 'bold',
 
                     }}
+
+
                 >
                     ⚙️ Settings
+                </button>
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        marginLeft: '8px',
+                        padding: '8px 12px',
+                        backgroundColor: '#fff',
+                        color: '#e74c3c',
+                        border: '1px solid #e74c3c',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                    }}
+                >
+                    Log Out
                 </button>
             </header>
 

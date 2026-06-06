@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import WeatherForecast from './WeatherForecast';
 import TripMap from './TripMap';
 import VoteSpotMap from './VoteSpotMap';
+import { authFetch } from '../utils/authFetch';
 
 /**
  * TripDetails displays and manages a selected trip itinerary.
@@ -31,12 +32,10 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const [aiMessages, setAiMessages] = useState([]);
     const [aiInput, setAiInput] = useState('');
 
-    // TODO: remove later
-    const currentUserId = 1;
 
     // Fetch all days for the trip
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days`)
+        authFetch(`/api/trips/${tripId}/days`)
             .then(res => res.json())
             .then(data => {
                 setDays(data);
@@ -53,9 +52,10 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     useEffect(() => {
         if (!selectedDayId) return;
 
-        const fetchLocations = fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/destinations?userId=${currentUserId}`)
+        const fetchLocations = authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`)
             .then(res => res.json());
-        const fetchActivities = fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/activities`)
+
+        const fetchActivities = authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`)
             .then(res => res.json());
 
         Promise.all([fetchLocations, fetchActivities])
@@ -65,13 +65,13 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                 setActivities(actData);
             })
             .catch(err => console.error("Failed to load day data:", err));
-    }, [selectedDayId]);
+    }, [selectedDayId, tripId]);
 
     const handleAddDay = () => {
         if (!newDayDate) return;
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days`, {
+
+        authFetch(`/api/trips/${tripId}/days`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ date: newDayDate })
         })
             .then(res => res.json())
@@ -83,10 +83,10 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     };
 
     const handleVote = (locationId) => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/vote?userId=${currentUserId}&votedLocationId=${locationId}`, {
+        authFetch(`/api/trips/${tripId}/days/${selectedDayId}/vote?votedLocationId=${locationId}`, {
             method: 'POST'
         })
-            .then(() => fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/destinations?userId=${currentUserId}`))
+            .then(() => authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`))
             .then(res => res.json())
             .then(data => {
                 setVotedLocations(data);
@@ -99,9 +99,8 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             return;
         }
 
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/destinations?userId=${currentUserId}`, {
+        authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: newLocation,
                 address: newLocationAddress,
@@ -114,7 +113,6 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                 setNewLocation('');
                 setNewLocationAddress('');
                 setNewLocationVisitTime('');
-
             });
     };
 
@@ -128,9 +126,8 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
         setAiLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/suggestions`, {
+            const response = await authFetch('/api/ai/suggestions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     destination: trip?.destination,
                     date: days.find(day => day.id === selectedDayId)?.date,
@@ -176,12 +173,11 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             return;
         }
 
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/activities?userId=${currentUserId}`, {
+        authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newActivity)
         })
-            .then(() => fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/activities`))
+            .then(() => authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`))
             .then(res => res.json())
             .then(data => {
                 setActivities(data);
@@ -190,10 +186,10 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     };
 
     const handleJoinActivity = (activityId) => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/activities/${activityId}/join?userId=${currentUserId}`, {
+        authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities/${activityId}/join`, {
             method: 'POST'
         })
-            .then(() => fetch(`${import.meta.env.VITE_API_URL}/api/trips/${tripId}/days/${selectedDayId}/activities`))
+            .then(() => authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`))
             .then(res => res.json())
             .then(data => setActivities(data));
     };
