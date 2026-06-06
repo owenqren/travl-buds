@@ -75,3 +75,8 @@ travlbuds/
 The app uses `spring.jpa.hibernate.ddl-auto=update` so tables are created automatically on first run.
 
 ## Roadmap
+- **Trip Sharing & Invitations:** Allow users to invite friends via email or link.
+- **Group Collaboration:** Shared permission models for editing the itinerary.
+- **Real-time Updates:** WebSockets for live syncing votes and itinerary changes.
+- **Notifications:** Alerts for new activity suggestions and voting deadlines.
+- **Route Optimization:** Automatically sort daily activities by geographic proximity.
