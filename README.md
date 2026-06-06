@@ -75,5 +75,3 @@ travlbuds/
 The app uses `spring.jpa.hibernate.ddl-auto=update` so tables are created automatically on first run.
 
 ## Roadmap
-- [ ] Authentication (replace hardcoded `userId=1`)
-- [ ] Day-by-day itinerary structure
