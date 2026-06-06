@@ -120,6 +120,9 @@ function App() {
                     Log Out
                 </button>
             </header>
+            <p style={{ color: '#7f8c8d', fontSize: '13px' }}>
+                Report a bug: <a href="mailto:support@travlbuds.com">support@travlbuds.com</a>
+            </p>
 
             {/* SETTINGS PANEL */}
             {showSettings && (
