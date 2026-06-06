@@ -11,7 +11,6 @@ import java.net.http.HttpResponse;
 
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AIController {
 
     @Value("${groq.api.key}")
