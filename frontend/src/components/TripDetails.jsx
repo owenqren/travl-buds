@@ -32,6 +32,10 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const [aiMessages, setAiMessages] = useState([]);
     const [aiInput, setAiInput] = useState('');
 
+    const [members, setMembers] = useState([]);
+    const [newMemberEmail, setNewMemberEmail] = useState('');
+    const [memberStatus, setMemberStatus] = useState('');
+    const [shareStatus, setShareStatus] = useState('');
 
     // Fetch all days for the trip
     useEffect(() => {
@@ -66,6 +70,57 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             })
             .catch(err => console.error("Failed to load day data:", err));
     }, [selectedDayId, tripId]);
+
+    // Fetch existing members on load
+    useEffect(() => {
+        authFetch(`/api/trips/${tripId}/members`)
+            .then(res => res.json())
+            .then(data => setMembers(data))
+            .catch(err => console.error('Failed to load members:', err));
+    }, [tripId]);
+
+    const handleAddMember = async () => {
+        const email = newMemberEmail.trim().toLowerCase();
+        if (!email) return;
+
+        try {
+            const res = await authFetch(`/api/trips/${tripId}/members`, {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+            if (!res.ok) {
+                const msg = await res.text();
+                setMemberStatus(msg || 'Failed to add.');
+            } else {
+                const data = await res.json();
+                setMembers(prev => [...prev, data]);
+                setNewMemberEmail('');
+                setMemberStatus('Access granted!');
+            }
+        } catch {
+            setMemberStatus('Error adding member.');
+        }
+        setTimeout(() => setMemberStatus(''), 3000);
+    };
+
+    const handleRemoveMember = async (email) => {
+        await authFetch(`/api/trips/${tripId}/members?email=${encodeURIComponent(email)}`, {
+            method: 'DELETE'
+        });
+        setMembers(prev => prev.filter(m => m.email !== email));
+    };
+
+    const handleCopyShareLink = async () => {
+        const shareUrl = `${window.location.origin}/trips/${tripId}`;
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setShareStatus('Link copied!');
+            setTimeout(() => setShareStatus(''), 2000);
+        } catch (error) {
+            console.error('Failed to copy share link:', error);
+            setShareStatus(shareUrl);
+        }
+    };
 
     const handleAddDay = () => {
         if (!newDayDate) return;
@@ -225,6 +280,60 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
 
             <h2 style={{ color: '#2c3e50', marginTop: 0 }}>{trip?.name || `Trip #${tripId}`}</h2>
             <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>📍 {trip?.destination}</p>
+            {/* SHARE LINK */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '16px' }}>
+                <button
+                    type="button"
+                    onClick={handleCopyShareLink}
+                    style={{ padding: '8px 12px', backgroundColor: '#fff', color: '#2c3e50', border: '1px solid #b8c2cc', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                    Share Link
+                </button>
+                {shareStatus && (
+                    <span style={{ fontSize: '13px', color: '#7f8c8d' }}>{shareStatus}</span>
+                )}
+            </div>
+
+            {/* TRIP ACCESS */}
+            <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+                <h4 style={{ margin: '0 0 12px', color: '#2c3e50' }}>🔒 Trip Access</h4>
+                {members.length > 0 && (
+                    <ul style={{ listStyle: 'none', padding: 0, marginBottom: '12px' }}>
+                        {members.map(m => (
+                            <li key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: '14px', color: '#2c3e50' }}>
+                                <span>📧 {m.email}</span>
+                                <button
+                                    onClick={() => handleRemoveMember(m.email)}
+                                    style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '13px' }}
+                                >
+                                    Remove
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                        type="email"
+                        placeholder="Add email address..."
+                        value={newMemberEmail}
+                        onChange={e => setNewMemberEmail(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleAddMember(); }}
+                        style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleAddMember}
+                        disabled={!newMemberEmail.trim()}
+                        style={{ padding: '8px 14px', backgroundColor: '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        Add
+                    </button>
+                </div>
+                {memberStatus && (
+                    <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#7f8c8d' }}>{memberStatus}</p>
+                )}
+            </div>
             <TripMap destination={trip?.destination} />
 
             {/* DAY SELECTOR */}
