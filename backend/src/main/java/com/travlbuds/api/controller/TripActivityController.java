@@ -18,16 +18,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/trips")
-
 /**
  * REST controller for trip day activities.
  *
  * Provides endpoints for listing activities, creating suggestions, and allowing
  * users to join or leave activities.
  */
-
+@RestController
+@RequestMapping("/api/trips")
 public class TripActivityController {
 
     @Autowired
@@ -40,12 +38,7 @@ public class TripActivityController {
     private TripAccessService tripAccessService;
 
     // GET ALL ACTIVITIES FOR A DAY
-    @Transactional
-    @GetMapping("/{tripId}/days/{dayId}/activities")
-    public ResponseEntity<List<TripActivity>> getActivities(@PathVariable Long dayId) {
-        return ResponseEntity.ok(activityRepo.findByTripDayId(dayId));
-    }
-
+    
     @GetMapping("/{tripId}/days/{dayId}/activities")
     public ResponseEntity<?> getActivities(@PathVariable Long tripId,
             @PathVariable Long dayId, Authentication auth) {
