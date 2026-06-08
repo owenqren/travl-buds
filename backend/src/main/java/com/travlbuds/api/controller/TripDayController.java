@@ -37,12 +37,7 @@ public class TripDayController {
     private TripAccessService tripAccessService;
 
     // GET ALL DAYS FOR A TRIP
-    @Transactional
-    @GetMapping("/{tripId}/days")
-    public ResponseEntity<List<TripDay>> getDays(@PathVariable Long tripId) {
-        return ResponseEntity.ok(tripDayRepo.findByTripIdOrderByDateAsc(tripId));
-    }
-
+    
     @Transactional
     @GetMapping("/{tripId}/days")
     public ResponseEntity<?> getDays(@PathVariable Long tripId, Authentication auth) {
