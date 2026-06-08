@@ -110,6 +110,22 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
         setMembers(prev => prev.filter(m => m.email !== email));
     };
 
+    const handleApproveMember = async (memberId) => {
+        const res = await authFetch(`/api/trips/${tripId}/members/${memberId}/approve`, { method: 'POST' });
+        if (res.ok) {
+            const updated = await res.json();
+            setMembers(prev => prev.map(m => m.id === memberId ? updated : m));
+        }
+    };
+
+    const handleRejectMember = async (memberId) => {
+        const res = await authFetch(`/api/trips/${tripId}/members/${memberId}/reject`, { method: 'POST' });
+        if (res.ok) {
+            const updated = await res.json();
+            setMembers(prev => prev.map(m => m.id === memberId ? updated : m));
+        }
+    };
+
     const handleCopyShareLink = async () => {
         const shareUrl = `${window.location.origin}/trips/${tripId}`;
         try {
@@ -301,13 +317,40 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                     <ul style={{ listStyle: 'none', padding: 0, marginBottom: '12px' }}>
                         {members.map(m => (
                             <li key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: '14px', color: '#2c3e50' }}>
-                                <span>📧 {m.email}</span>
-                                <button
-                                    onClick={() => handleRemoveMember(m.email)}
-                                    style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '13px' }}
-                                >
-                                    Remove
-                                </button>
+                                <span>
+                                    📧 {m.email}
+                                    <span style={{
+                                        marginLeft: '8px', fontSize: '11px', padding: '2px 6px', borderRadius: '10px',
+                                        backgroundColor: m.status === 'APPROVED' ? '#eafaf1' : m.status === 'REJECTED' ? '#fdecea' : '#fef9e7',
+                                        color: m.status === 'APPROVED' ? '#27ae60' : m.status === 'REJECTED' ? '#e74c3c' : '#e67e22'
+                                    }}>
+                                        {m.status}
+                                    </span>
+                                </span>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    {m.status === 'PENDING' && (
+                                        <>
+                                            <button
+                                                onClick={() => handleApproveMember(m.id)}
+                                                style={{ padding: '3px 8px', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                                            >
+                                                Approve
+                                            </button>
+                                            <button
+                                                onClick={() => handleRejectMember(m.id)}
+                                                style={{ padding: '3px 8px', backgroundColor: '#e74c3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                                            >
+                                                Reject
+                                            </button>
+                                        </>
+                                    )}
+                                    <button
+                                        onClick={() => handleRemoveMember(m.email)}
+                                        style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '13px' }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
                             </li>
                         ))}
                     </ul>

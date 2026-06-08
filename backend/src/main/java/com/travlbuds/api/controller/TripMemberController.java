@@ -1,34 +1,53 @@
 package com.travlbuds.api.controller;
 
+import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.TripMember;
 import com.travlbuds.api.repositories.TripMemberRepository;
+import com.travlbuds.api.repositories.TripRepository;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/trips/{tripId}/members")
 public class TripMemberController {
 
     private final TripMemberRepository memberRepo;
+    private final TripRepository tripRepo;
 
-    public TripMemberController(TripMemberRepository memberRepo) {
+    public TripMemberController(TripMemberRepository memberRepo, TripRepository tripRepo) {
         this.memberRepo = memberRepo;
+        this.tripRepo = tripRepo;
     }
 
     // GET /api/trips/{tripId}/members
     @GetMapping
-    public ResponseEntity<List<TripMember>> getMembers(@PathVariable Long tripId) {
-        return ResponseEntity.ok(memberRepo.findByTripId(tripId));
+    public ResponseEntity<List<TripMember>> getMembers(@PathVariable Long tripId,
+            Authentication auth) {
+        String currentEmail = auth.getName();
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        if (trip == null)
+            return ResponseEntity.notFound().build();
+
+        List<TripMember> members = memberRepo.findByTripId(tripId);
+
+        if (trip.getUser().getEmail().equals(currentEmail)) {
+            return ResponseEntity.ok(members); // owner sees PENDING too
+        }
+        // non-owners only see approved
+        return ResponseEntity.ok(
+                members.stream().filter(m -> "APPROVED".equals(m.getStatus())).toList());
     }
 
-    // POST /api/trips/{tripId}/members  body: { "email": "alice@example.com" }
+    // POST /api/trips/{tripId}/members body: { "email": "alice@example.com" }
     @PostMapping
     public ResponseEntity<?> addMember(@PathVariable Long tripId,
-                                       @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body) {
         String email = body.get("email");
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest().body("Email is required");
@@ -39,6 +58,47 @@ public class TripMemberController {
         TripMember member = new TripMember();
         member.setTripId(tripId);
         member.setEmail(email.toLowerCase().trim());
+        member.setStatus("PENDING");
+        return ResponseEntity.ok(memberRepo.save(member));
+    }
+
+    // POST /api/trips/{tripId}/members/{memberId}/approve — owner only
+    @PostMapping("/{memberId}/approve")
+    public ResponseEntity<?> approveMember(@PathVariable Long tripId,
+            @PathVariable Long memberId,
+            Authentication auth) {
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        if (trip == null)
+            return ResponseEntity.notFound().build();
+        if (!trip.getUser().getEmail().equals(auth.getName())) {
+            return ResponseEntity.status(403).body("Only the trip owner can approve members");
+        }
+        Optional<TripMember> opt = memberRepo.findById(memberId);
+        if (opt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        TripMember member = opt.get();
+        member.setStatus("APPROVED");
+        return ResponseEntity.ok(memberRepo.save(member));
+    }
+
+    // POST /api/trips/{tripId}/members/{memberId}/reject — owner only
+    @PostMapping("/{memberId}/reject")
+    public ResponseEntity<?> rejectMember(@PathVariable Long tripId,
+            @PathVariable Long memberId,
+            Authentication auth) {
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        if (trip == null)
+            return ResponseEntity.notFound().build();
+        if (!trip.getUser().getEmail().equals(auth.getName())) {
+            return ResponseEntity.status(403).body("Only the trip owner can reject members");
+        }
+        Optional<TripMember> opt = memberRepo.findById(memberId);
+        if (opt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        TripMember member = opt.get();
+        member.setStatus("REJECTED");
         return ResponseEntity.ok(memberRepo.save(member));
     }
 
@@ -46,7 +106,14 @@ public class TripMemberController {
     @DeleteMapping
     @Transactional
     public ResponseEntity<?> removeMember(@PathVariable Long tripId,
-                                          @RequestParam String email) {
+            @RequestParam String email,
+            Authentication auth) {
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        if (trip == null)
+            return ResponseEntity.notFound().build();
+        if (!trip.getUser().getEmail().equals(auth.getName())) {
+            return ResponseEntity.status(403).body("Only the trip owner can remove members");
+        }
         memberRepo.deleteByTripIdAndEmail(tripId, email);
         return ResponseEntity.ok().build();
     }

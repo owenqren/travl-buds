@@ -9,6 +9,9 @@ import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.TripDay;
 import com.travlbuds.api.repositories.TripDayRepository;
 import com.travlbuds.api.repositories.TripRepository;
+import com.travlbuds.api.services.TripAccessService;
+
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -30,10 +33,22 @@ public class TripDayController {
     @Autowired
     private TripRepository tripRepo;
 
+    @Autowired
+    private TripAccessService tripAccessService;
+
     // GET ALL DAYS FOR A TRIP
     @Transactional
     @GetMapping("/{tripId}/days")
     public ResponseEntity<List<TripDay>> getDays(@PathVariable Long tripId) {
+        return ResponseEntity.ok(tripDayRepo.findByTripIdOrderByDateAsc(tripId));
+    }
+
+    @Transactional
+    @GetMapping("/{tripId}/days")
+    public ResponseEntity<?> getDays(@PathVariable Long tripId, Authentication auth) {
+        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+            return ResponseEntity.status(403).body("Access denied.");
+        }
         return ResponseEntity.ok(tripDayRepo.findByTripIdOrderByDateAsc(tripId));
     }
 
@@ -51,5 +66,19 @@ public class TripDayController {
         dayRequest.setTrip(trip);
         TripDay saved = tripDayRepo.save(dayRequest);
         return ResponseEntity.ok(saved);
+    }
+
+    // Add Authentication parameter and check to POST
+    @PostMapping("/{tripId}/days")
+    public ResponseEntity<?> addDay(@PathVariable Long tripId,
+            @RequestBody TripDay dayRequest, Authentication auth) {
+        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+            return ResponseEntity.status(403).body("Access denied.");
+        }
+        Trip trip = tripRepo.findById(tripId).orElse(null);
+        if (trip == null)
+            return ResponseEntity.status(404).body("Trip not found.");
+        dayRequest.setTrip(trip);
+        return ResponseEntity.ok(tripDayRepo.save(dayRequest));
     }
 }
