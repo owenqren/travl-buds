@@ -49,22 +49,6 @@ public class TripDayController {
 
     // ADD A DAY TO A TRIP
     @PostMapping("/{tripId}/days")
-    public ResponseEntity<?> addDay(
-            @PathVariable Long tripId,
-            @RequestBody TripDay dayRequest) {
-
-        Trip trip = tripRepo.findById(tripId).orElse(null);
-        if (trip == null) {
-            return ResponseEntity.status(404).body("Trip not found.");
-        }
-
-        dayRequest.setTrip(trip);
-        TripDay saved = tripDayRepo.save(dayRequest);
-        return ResponseEntity.ok(saved);
-    }
-
-    // Add Authentication parameter and check to POST
-    @PostMapping("/{tripId}/days")
     public ResponseEntity<?> addDay(@PathVariable Long tripId,
             @RequestBody TripDay dayRequest, Authentication auth) {
         if (!tripAccessService.canAccess(tripId, auth.getName())) {
