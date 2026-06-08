@@ -10,9 +10,9 @@ import com.travlbuds.api.models.User;
 import com.travlbuds.api.models.Vote;
 import com.travlbuds.api.models.VotedLocation;
 import com.travlbuds.api.repositories.TripDayRepository;
-import com.travlbuds.api.repositories.UserRepository;
 import com.travlbuds.api.repositories.VoteRepository;
 import com.travlbuds.api.repositories.VotedLocationRepository;
+import com.travlbuds.api.services.TripAccessService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,15 +22,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
-
-/**
- * REST controller for destination suggestions and voting.
- *
- * Handles blind destination voting by hiding vote counts until the user has
- * voted, and validates that votes and destinations belong to the selected trip
- * day.
- */
-
 public class VotingController {
 
     @Autowired
@@ -42,24 +33,25 @@ public class VotingController {
     @Autowired
     private TripDayRepository tripDayRepo;
 
-    // GET VOTED LOCATIONS FOR A DAY (Blind Logic)
+    @Autowired
+    private TripAccessService tripAccessService;
+
+    // GET VOTED LOCATIONS FOR A DAY
     @GetMapping("/{tripId}/days/{dayId}/destinations")
     public ResponseEntity<?> getDestinations(
             @PathVariable Long tripId,
-            @PathVariable Long dayId) {
+            @PathVariable Long dayId,
+            Authentication auth) {
+
+        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+            return ResponseEntity.status(403).body("Access denied.");
+        }
 
         User user = getCurrentUser();
-
-        if (user == null) {
-            return ResponseEntity.status(401).body("Unauthorized.");
-        }
+        if (user == null) return ResponseEntity.status(401).body("Unauthorized.");
 
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
-
-        if (tripDay == null) {
-            return ResponseEntity.status(404).body("Day not found.");
-        }
-
+        if (tripDay == null) return ResponseEntity.status(404).body("Day not found.");
         if (!tripDay.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Day does not belong to this trip.");
         }
@@ -69,17 +61,9 @@ public class VotingController {
         List<DestinationResponse> responseList = new ArrayList<>();
 
         for (VotedLocation loc : locations) {
-            Integer voteCount = null;
-            if (hasVoted) {
-                voteCount = loc.getVotes().size();
-            }
-
+            Integer voteCount = hasVoted ? loc.getVotes().size() : null;
             responseList.add(new DestinationResponse(
-                    loc.getId(),
-                    loc.getName(),
-                    loc.getAddress(),
-                    loc.getVisitTime(),
-                    voteCount));
+                    loc.getId(), loc.getName(), loc.getAddress(), loc.getVisitTime(), voteCount));
         }
 
         return ResponseEntity.ok(responseList);
@@ -90,27 +74,24 @@ public class VotingController {
     public ResponseEntity<String> castVote(
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @RequestParam Long votedLocationId) {
+            @RequestParam Long votedLocationId,
+            Authentication auth) {
+
+        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+            return ResponseEntity.status(403).body("Access denied.");
+        }
 
         User user = getCurrentUser();
         VotedLocation location = votedLocationRepo.findById(votedLocationId).orElse(null);
 
-        if (user == null) {
-            return ResponseEntity.status(401).body("Unauthorized.");
-        }
-
-        if (location == null) {
-            return ResponseEntity.status(404).body("Location not found.");
-        }
-
+        if (user == null) return ResponseEntity.status(401).body("Unauthorized.");
+        if (location == null) return ResponseEntity.status(404).body("Location not found.");
         if (!location.getTripDay().getId().equals(dayId)) {
             return ResponseEntity.badRequest().body("Location does not belong to this day.");
         }
-
         if (!location.getTripDay().getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Location does not belong to this trip.");
         }
-
         if (voteRepo.existsByUserIdAndVotedLocationTripDayId(user.getId(), dayId)) {
             return ResponseEntity.badRequest().body("You have already voted for this day!");
         }
@@ -124,19 +105,18 @@ public class VotingController {
     public ResponseEntity<?> addDestination(
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @RequestBody VotedLocation locationRequest) {
+            @RequestBody VotedLocation locationRequest,
+            Authentication auth) {
+
+        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+            return ResponseEntity.status(403).body("Access denied.");
+        }
 
         User user = getCurrentUser();
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
 
-        if (user == null) {
-            return ResponseEntity.status(401).body("Unauthorized.");
-        }
-
-        if (tripDay == null) {
-            return ResponseEntity.status(404).body("Day not found.");
-        }
-
+        if (user == null) return ResponseEntity.status(401).body("Unauthorized.");
+        if (tripDay == null) return ResponseEntity.status(404).body("Day not found.");
         if (!tripDay.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Day does not belong to this trip.");
         }
@@ -148,11 +128,9 @@ public class VotingController {
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
             return null;
         }
-
         return user;
     }
 }

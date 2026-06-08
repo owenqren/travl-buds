@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.User;
 import com.travlbuds.api.repositories.TripRepository;
-import com.travlbuds.api.repositories.UserRepository;
+import com.travlbuds.api.services.TripAccessService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
-
 
 /**
  * REST controller for trip-level operations.
@@ -31,7 +30,7 @@ public class TripController {
     private TripRepository tripRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private TripAccessService tripAccessService;
 
     @GetMapping
     public ResponseEntity<?> getUserTrips() {
@@ -43,6 +42,21 @@ public class TripController {
 
         List<Trip> userTrips = tripRepository.findByUserId(user.getId());
         return ResponseEntity.ok(userTrips);
+    }
+
+    @GetMapping("/{tripId}")
+    public ResponseEntity<?> getTrip(@PathVariable Long tripId) {
+        User user = getCurrentUser();
+        if (user == null)
+            return ResponseEntity.status(401).body("Unauthorized.");
+
+        if (!tripAccessService.canAccess(tripId, user.getEmail())) {
+            return ResponseEntity.status(403).body("Access denied.");
+        }
+
+        return tripRepository.findById(tripId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
