@@ -43,15 +43,18 @@ public class VotingController {
             @PathVariable Long dayId,
             Authentication auth) {
 
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
 
         User user = getCurrentUser();
-        if (user == null) return ResponseEntity.status(401).body("Unauthorized.");
+        if (user == null)
+            return ResponseEntity.status(401).body("Unauthorized.");
 
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
-        if (tripDay == null) return ResponseEntity.status(404).body("Day not found.");
+        if (tripDay == null)
+            return ResponseEntity.status(404).body("Day not found.");
         if (!tripDay.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Day does not belong to this trip.");
         }
@@ -77,15 +80,18 @@ public class VotingController {
             @RequestParam Long votedLocationId,
             Authentication auth) {
 
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
 
         User user = getCurrentUser();
         VotedLocation location = votedLocationRepo.findById(votedLocationId).orElse(null);
 
-        if (user == null) return ResponseEntity.status(401).body("Unauthorized.");
-        if (location == null) return ResponseEntity.status(404).body("Location not found.");
+        if (user == null)
+            return ResponseEntity.status(401).body("Unauthorized.");
+        if (location == null)
+            return ResponseEntity.status(404).body("Location not found.");
         if (!location.getTripDay().getId().equals(dayId)) {
             return ResponseEntity.badRequest().body("Location does not belong to this day.");
         }
@@ -108,15 +114,18 @@ public class VotingController {
             @RequestBody VotedLocation locationRequest,
             Authentication auth) {
 
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
 
         User user = getCurrentUser();
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
 
-        if (user == null) return ResponseEntity.status(401).body("Unauthorized.");
-        if (tripDay == null) return ResponseEntity.status(404).body("Day not found.");
+        if (user == null)
+            return ResponseEntity.status(401).body("Unauthorized.");
+        if (tripDay == null)
+            return ResponseEntity.status(404).body("Day not found.");
         if (!tripDay.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Day does not belong to this trip.");
         }

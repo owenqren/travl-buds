@@ -15,7 +15,6 @@ import com.travlbuds.api.services.TripAccessService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-
 /**
  * REST controller for trip day activities.
  *
@@ -36,11 +35,12 @@ public class TripActivityController {
     private TripAccessService tripAccessService;
 
     // GET ALL ACTIVITIES FOR A DAY
-    
+
     @GetMapping("/{tripId}/days/{dayId}/activities")
     public ResponseEntity<?> getActivities(@PathVariable Long tripId,
             @PathVariable Long dayId, Authentication auth) {
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
         return ResponseEntity.ok(activityRepo.findByTripDayId(dayId));
@@ -51,7 +51,8 @@ public class TripActivityController {
     public ResponseEntity<?> createActivity(@PathVariable Long tripId,
             @PathVariable Long dayId,
             @RequestBody TripActivity activityRequest, Authentication auth) {
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
@@ -69,7 +70,8 @@ public class TripActivityController {
     @PostMapping("/{tripId}/days/{dayId}/activities/{activityId}/join")
     public ResponseEntity<String> joinActivity(@PathVariable Long tripId,
             @PathVariable Long activityId, Authentication auth) {
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
         User user = getCurrentUser();
@@ -93,7 +95,8 @@ public class TripActivityController {
     @DeleteMapping("/{tripId}/days/{dayId}/activities/{activityId}/leave")
     public ResponseEntity<String> leaveActivity(@PathVariable Long tripId,
             @PathVariable Long activityId, Authentication auth) {
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
         User user = getCurrentUser();
