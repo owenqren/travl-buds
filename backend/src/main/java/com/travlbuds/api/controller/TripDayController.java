@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.TripDay;
+import com.travlbuds.api.models.User;
 import com.travlbuds.api.repositories.TripDayRepository;
 import com.travlbuds.api.repositories.TripRepository;
 import com.travlbuds.api.services.TripAccessService;
@@ -38,7 +39,8 @@ public class TripDayController {
     @Transactional
     @GetMapping("/{tripId}/days")
     public ResponseEntity<?> getDays(@PathVariable Long tripId, Authentication auth) {
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
         return ResponseEntity.ok(tripDayRepo.findByTripIdOrderByDateAsc(tripId));
@@ -48,7 +50,8 @@ public class TripDayController {
     @PostMapping("/{tripId}/days")
     public ResponseEntity<?> addDay(@PathVariable Long tripId,
             @RequestBody TripDay dayRequest, Authentication auth) {
-        if (!tripAccessService.canAccess(tripId, auth.getName())) {
+        String email = ((User) auth.getPrincipal()).getEmail();
+        if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
         Trip trip = tripRepo.findById(tripId).orElse(null);

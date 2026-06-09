@@ -18,8 +18,10 @@ public class TripAccessService {
 
     public boolean canAccess(Long tripId, String userEmail) {
         Trip trip = tripRepo.findById(tripId).orElse(null);
-        if (trip == null) return false;
-        if (trip.getUser().getEmail().equals(userEmail)) return true;
+        if (trip == null)
+            return false;
+        if (trip.getUser().getEmail().equals(userEmail))
+            return true;
         return memberRepo.existsByTripIdAndEmailAndStatus(tripId, userEmail, "APPROVED");
     }
 }
