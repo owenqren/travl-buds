@@ -13,8 +13,6 @@ import com.travlbuds.api.services.TripAccessService;
 
 import org.springframework.security.core.Authentication;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/trips")
 
@@ -37,7 +35,6 @@ public class TripDayController {
     private TripAccessService tripAccessService;
 
     // GET ALL DAYS FOR A TRIP
-    
     @Transactional
     @GetMapping("/{tripId}/days")
     public ResponseEntity<?> getDays(@PathVariable Long tripId, Authentication auth) {
