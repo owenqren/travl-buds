@@ -1,9 +1,8 @@
 package com.travlbuds.api.controller;
 
-import com.travlbuds.api.models.Trip;
-import com.travlbuds.api.models.TripMember;
 import com.travlbuds.api.repositories.TripMemberRepository;
 import com.travlbuds.api.repositories.TripRepository;
+import com.travlbuds.api.models.*;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -29,14 +28,13 @@ public class TripMemberController {
     @GetMapping
     public ResponseEntity<List<TripMember>> getMembers(@PathVariable Long tripId,
             Authentication auth) {
-        String currentEmail = auth.getName();
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return ResponseEntity.notFound().build();
 
         List<TripMember> members = memberRepo.findByTripId(tripId);
-
-        if (trip.getUser().getEmail().equals(currentEmail)) {
+        User currentUser = (User) auth.getPrincipal();
+        if (trip.getUser().getId().equals(currentUser.getId())) {
             return ResponseEntity.ok(members); // owner sees PENDING too
         }
         // non-owners only see approved
@@ -67,10 +65,11 @@ public class TripMemberController {
     public ResponseEntity<?> approveMember(@PathVariable Long tripId,
             @PathVariable Long memberId,
             Authentication auth) {
+        User currentUser = (User) auth.getPrincipal();
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return ResponseEntity.notFound().build();
-        if (!trip.getUser().getEmail().equals(auth.getName())) {
+        if (!trip.getUser().getId().equals(currentUser.getId())) {
             return ResponseEntity.status(403).body("Only the trip owner can approve members");
         }
         Optional<TripMember> opt = memberRepo.findById(memberId);
@@ -87,10 +86,11 @@ public class TripMemberController {
     public ResponseEntity<?> rejectMember(@PathVariable Long tripId,
             @PathVariable Long memberId,
             Authentication auth) {
+        User currentUser = (User) auth.getPrincipal();
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return ResponseEntity.notFound().build();
-        if (!trip.getUser().getEmail().equals(auth.getName())) {
+        if (!trip.getUser().getId().equals(currentUser.getId())) {
             return ResponseEntity.status(403).body("Only the trip owner can reject members");
         }
         Optional<TripMember> opt = memberRepo.findById(memberId);
@@ -108,10 +108,11 @@ public class TripMemberController {
     public ResponseEntity<?> removeMember(@PathVariable Long tripId,
             @RequestParam String email,
             Authentication auth) {
+        User currentUser = (User) auth.getPrincipal();
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return ResponseEntity.notFound().build();
-        if (!trip.getUser().getEmail().equals(auth.getName())) {
+        if (!trip.getUser().getId().equals(currentUser.getId())) {
             return ResponseEntity.status(403).body("Only the trip owner can remove members");
         }
         memberRepo.deleteByTripIdAndEmail(tripId, email);
