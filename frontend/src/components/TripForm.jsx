@@ -30,7 +30,7 @@ export default function TripForm({ onTripAdded }) {
             console.error("Failed to save trip:", error);
         }
     };
-
+    const isValid = tripData.name.trim() && tripData.destination.trim() && tripData.startDate && tripData.endDate;
     return (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <input
@@ -63,7 +63,8 @@ export default function TripForm({ onTripAdded }) {
             />
             <button
                 type="submit"
-                style={{ padding: '10px', backgroundColor: '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                disabled={!isValid}
+                style={{ padding: '10px', backgroundColor: isValid ? '#2c3e50' : '#95a5a6', color: '#fff', border: 'none', borderRadius: '4px', cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: isValid ? 1 : 0.6 }}
             >
                 Add Trip
             </button>
