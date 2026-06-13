@@ -283,6 +283,9 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     ].filter(stop => stop.address && stop.visitTime)
         .sort((a, b) => a.visitTime.localeCompare(b.visitTime));
 
+    const activityValid = newActivity.name.trim() && newActivity.address.trim() && newActivity.visitTime;
+    const spotValid = newLocation.trim() && newLocationAddress.trim() && newLocationVisitTime;
+
     if (loading) return <p>Loading...</p>;
 
     return (
@@ -409,7 +412,8 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                 />
                 <button
                     onClick={handleAddDay}
-                    style={{ padding: '8px 16px', backgroundColor: '#3498db', color: '#fff', border: 'none', borderRadius: '20px', cursor: 'pointer' }}
+                    disabled={!newDayDate}
+                    style={{ padding: '8px 16px', backgroundColor: newDayDate ? '#3498db' : '#95a5a6', color: '#fff', border: 'none', borderRadius: '20px', cursor: newDayDate ? 'pointer' : 'not-allowed', opacity: newDayDate ? 1 : 0.6 }}
                 >
                     + Add Day
                 </button>
@@ -571,7 +575,8 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                             />
                             <button
                                 onClick={handleAddActivity}
-                                style={{ width: '100%', padding: '10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                disabled={!activityValid}
+                                style={{ width: '100%', padding: '10px', backgroundColor: activityValid ? '#27ae60' : '#95a5a6', color: 'white', border: 'none', borderRadius: '4px', cursor: activityValid ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: activityValid ? 1 : 0.6 }}
                             >
                                 Add Activity
                             </button>
@@ -655,7 +660,8 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                             />
                             <button
                                 onClick={handleAddLocation}
-                                style={{ width: '100%', padding: '10px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                disabled={!spotValid}
+                                style={{ width: '100%', padding: '10px', backgroundColor: spotValid ? '#e74c3c' : '#95a5a6', opacity: spotValid ? 1 : 0.6 }}
                             >
                                 Suggest a Spot
                             </button>
