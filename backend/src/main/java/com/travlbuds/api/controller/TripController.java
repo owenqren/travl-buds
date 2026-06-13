@@ -1,6 +1,5 @@
 package com.travlbuds.api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,11 +25,13 @@ import java.util.List;
 
 public class TripController {
 
-    @Autowired
-    private TripRepository tripRepository;
+    private final TripRepository tripRepository;
+    private final TripAccessService tripAccessService;
 
-    @Autowired
-    private TripAccessService tripAccessService;
+    public TripController(TripRepository tripRepository, TripAccessService tripAccessService) {
+        this.tripRepository = tripRepository;
+        this.tripAccessService = tripAccessService;
+    }
 
     @GetMapping
     public ResponseEntity<?> getUserTrips() {

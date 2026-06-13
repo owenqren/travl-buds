@@ -1,6 +1,5 @@
 package com.travlbuds.api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +24,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RequestMapping("/api/trips")
 public class TripActivityController {
 
-    @Autowired
-    private TripActivityRepository activityRepo;
+    private final TripActivityRepository activityRepo;
+    private final TripDayRepository tripDayRepo;
+    private final TripAccessService tripAccessService;
 
-    @Autowired
-    private TripDayRepository tripDayRepo;
-
-    @Autowired
-    private TripAccessService tripAccessService;
+    public TripActivityController(TripActivityRepository activityRepo, TripDayRepository tripDayRepo,
+            TripAccessService tripAccessService) {
+        this.activityRepo = activityRepo;
+        this.tripDayRepo = tripDayRepo;
+        this.tripAccessService = tripAccessService;
+    }
 
     // GET ALL ACTIVITIES FOR A DAY
 

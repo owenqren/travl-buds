@@ -1,6 +1,5 @@
 package com.travlbuds.api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,17 +23,17 @@ import java.util.List;
 @RequestMapping("/api/trips")
 public class VotingController {
 
-    @Autowired
-    private VotedLocationRepository votedLocationRepo;
+    private final VotedLocationRepository votedLocationRepo;
+    private final VoteRepository voteRepo;
+    private final TripDayRepository tripDayRepo;
+    private final TripAccessService tripAccessService;
 
-    @Autowired
-    private VoteRepository voteRepo;
-
-    @Autowired
-    private TripDayRepository tripDayRepo;
-
-    @Autowired
-    private TripAccessService tripAccessService;
+    public VotingController(VotedLocationRepository votedLocationRepo, VoteRepository voteRepo, TripDayRepository tripDayRepo, TripAccessService tripAccessService){
+        this.votedLocationRepo = votedLocationRepo;
+        this.voteRepo = voteRepo;
+        this.tripDayRepo = tripDayRepo;
+        this.tripAccessService = tripAccessService;
+    }
 
     // GET VOTED LOCATIONS FOR A DAY
     @GetMapping("/{tripId}/days/{dayId}/destinations")
