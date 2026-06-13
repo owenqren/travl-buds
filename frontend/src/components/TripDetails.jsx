@@ -371,7 +371,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                         type="button"
                         onClick={handleAddMember}
                         disabled={!newMemberEmail.trim()}
-                        style={{ padding: '8px 14px', backgroundColor: '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        style={{ padding: '8px 14px', backgroundColor: newMemberEmail.trim() ? '#2c3e50' : '#95a5a6', color: '#fff', border: 'none', borderRadius: '4px', cursor: newMemberEmail.trim() ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: newMemberEmail.trim() ? 1 : 0.6 }}
                     >
                         Add
                     </button>
