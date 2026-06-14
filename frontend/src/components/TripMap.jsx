@@ -5,26 +5,19 @@
  * the map without requiring a backend endpoint or API key.
  */
 
-export default function TripMap({ destination }) {
+export default function TripMap({ destination, mapProvider }) {
     if (!destination) return null;
 
-    const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(destination)}&output=embed`;
+    const mapUrl = mapProvider === 'baidu'
+        ? `https://map.baidu.com/?latlng=&title=${encodeURIComponent(destination)}&content=${encodeURIComponent(destination)}&output=embed&src=travlbuds`
+        : `https://www.google.com/maps?q=${encodeURIComponent(destination)}&output=embed`;
 
     return (
         <section style={{ margin: '20px 0' }}>
             <h3 style={{ marginTop: 0, color: '#2c3e50' }}>Map</h3>
-
-            <div
-                style={{
-                    width: '100%',
-                    height: '280px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    border: '1px solid #ddd',
-                    backgroundColor: '#f0f0f0'
-                }}
-            >
+            <div style={{ width: '100%', height: '280px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd', backgroundColor: '#f0f0f0' }}>
                 <iframe
+                    key={mapUrl}
                     title={`Map of ${destination}`}
                     src={mapUrl}
                     width="100%"

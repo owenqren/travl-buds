@@ -37,6 +37,8 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const [memberStatus, setMemberStatus] = useState('');
     const [shareStatus, setShareStatus] = useState('');
 
+    
+
     // Fetch all days for the trip
     useEffect(() => {
         authFetch(`/api/trips/${tripId}/days`)
@@ -380,7 +382,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                     <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#7f8c8d' }}>{memberStatus}</p>
                 )}
             </div>
-            <TripMap destination={trip?.destination} />
+            <TripMap destination={trip?.destination} mapProvider={units.mapProvider} />
 
             {/* DAY SELECTOR */}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', alignItems: 'center' }}>
@@ -661,7 +663,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                             <button
                                 onClick={handleAddLocation}
                                 disabled={!spotValid}
-                                style={{ width: '100%', padding: '10px', backgroundColor: spotValid ? '#e74c3c' : '#95a5a6', opacity: spotValid ? 1 : 0.6 }}
+                                style={{ width: '100%', padding: '10px', backgroundColor: spotValid ? '#e74c3c' : '#95a5a6', color: 'white', border: 'none', borderRadius: '4px', cursor: spotValid ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: spotValid ? 1 : 0.6 }}
                             >
                                 Suggest a Spot
                             </button>

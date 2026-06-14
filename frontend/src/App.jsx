@@ -16,7 +16,7 @@ import { authFetch } from './utils/authFetch';
 function App() {
     const [trips, setTrips] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
-    const [units, setUnits] = useState({ temperature: 'C', distance: 'km' });
+    const [units, setUnits] = useState({ temperature: 'C', distance: 'km', mapProvider: 'google' });
 
     const [currentUser, setCurrentUser] = useState(() => {
         const savedUser = localStorage.getItem('travlbudsUser');
@@ -161,6 +161,23 @@ function App() {
                                 style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.distance === 'mi' ? '#2c3e50' : '#fff', color: units.distance === 'mi' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
                             >
                                 mi
+                            </button>
+                        </div>
+                    </div>
+                    <div style={{ marginTop: '15px' }}>
+                        <p style={{ fontWeight: 'bold', color: '#2c3e50', marginBottom: '8px' }}>Map Provider</p>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setUnits({ ...units, mapProvider: 'google' })}
+                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.mapProvider !== 'baidu' ? '#2c3e50' : '#fff', color: units.mapProvider !== 'baidu' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
+                            >
+                                Google Maps
+                            </button>
+                            <button
+                                onClick={() => setUnits({ ...units, mapProvider: 'baidu' })}
+                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.mapProvider === 'baidu' ? '#2c3e50' : '#fff', color: units.mapProvider === 'baidu' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
+                            >
+                                Baidu Maps
                             </button>
                         </div>
                     </div>
