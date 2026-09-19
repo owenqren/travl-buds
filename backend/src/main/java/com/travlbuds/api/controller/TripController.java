@@ -41,7 +41,8 @@ public class TripController {
             return ResponseEntity.status(401).body("Unauthorized.");
         }
 
-        List<Trip> userTrips = tripRepository.findByUserId(user.getId());
+        // Trips the user owns plus trips they have been approved into.
+        List<Trip> userTrips = tripAccessService.findAccessibleTrips(user);
         return ResponseEntity.ok(userTrips);
     }
 

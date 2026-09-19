@@ -14,5 +14,9 @@ public interface TripMemberRepository extends JpaRepository<TripMember, Long> {
 
     Optional<TripMember> findByTripIdAndEmail(Long tripId, String email);
 
+    Optional<TripMember> findByTripIdAndEmailIgnoreCase(Long tripId, String email);
+
+    List<TripMember> findByEmailIgnoreCaseAndStatus(String email, String status);
+
     boolean existsByTripIdAndEmailAndStatus(Long tripId, String email, String status);
 }

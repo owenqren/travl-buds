@@ -50,6 +50,37 @@ public class TripMemberController {
                 members.stream().filter(m -> "APPROVED".equals(m.getStatus())).toList());
     }
 
+    // GET /api/trips/{tripId}/members/me — the caller's own access status
+    // Returns { "status": "OWNER" | "APPROVED" | "PENDING" | "REJECTED" | "NONE" }
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyAccess(@PathVariable Long tripId, Authentication auth) {
+        User currentUser = (User) auth.getPrincipal();
+        return tripAccessService.accessStatus(tripId, currentUser.getEmail())
+                .<ResponseEntity<?>>map(status -> ResponseEntity.ok(Map.of("status", status)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // POST /api/trips/{tripId}/members/request — ask the owner for access
+    // Creates a PENDING membership for the caller unless they already have one
+    // (or own the trip); either way responds with their resulting status.
+    @PostMapping("/request")
+    public ResponseEntity<?> requestAccess(@PathVariable Long tripId, Authentication auth) {
+        User currentUser = (User) auth.getPrincipal();
+        Optional<String> status = tripAccessService.accessStatus(tripId, currentUser.getEmail());
+        if (status.isEmpty())
+            return ResponseEntity.notFound().build();
+        if (!TripAccessService.NONE.equals(status.get())) {
+            return ResponseEntity.ok(Map.of("status", status.get()));
+        }
+
+        TripMember member = new TripMember();
+        member.setTripId(tripId);
+        member.setEmail(currentUser.getEmail().toLowerCase().trim());
+        member.setStatus("PENDING");
+        memberRepo.save(member);
+        return ResponseEntity.ok(Map.of("status", "PENDING"));
+    }
+
     // POST /api/trips/{tripId}/members body: { "email": "alice@example.com" }
     @PostMapping
     public ResponseEntity<?> addMember(@PathVariable Long tripId,
