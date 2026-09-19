@@ -3,6 +3,8 @@
  * through the suggested vote spots for the selected trip day.
  */
 import { useEffect, useMemo, useState } from 'react';
+import dash from './Dashboard.module.css';
+import styles from './TripPage.module.css';
 
 export default function VoteSpotMap({ locations = [], destination }) {
     const [travelMode, setTravelMode] = useState('walking');
@@ -49,78 +51,55 @@ export default function VoteSpotMap({ locations = [], destination }) {
     ].filter(Boolean).join('&');
 
     return (
-        <section style={{ margin: '20px 0' }}>
-            <h3 style={{ marginTop: 0, color: '#2c3e50' }}>Day Route</h3>
-
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                <button
-                    type="button"
-                    onClick={() => setTravelMode('walking')}
-                    style={{
-                        padding: '8px 12px',
-                        borderRadius: '20px',
-                        border: '1px solid #ccc',
-                        backgroundColor: travelMode === 'walking' ? '#2c3e50' : '#fff',
-                        color: travelMode === 'walking' ? '#fff' : '#2c3e50',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Walking
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => setTravelMode('driving')}
-                    style={{
-                        padding: '8px 12px',
-                        borderRadius: '20px',
-                        border: '1px solid #ccc',
-                        backgroundColor: travelMode === 'driving' ? '#2c3e50' : '#fff',
-                        color: travelMode === 'driving' ? '#fff' : '#2c3e50',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Driving
-                </button>
+        <section className={dash.section}>
+            <div className={dash.rail}>
+                <span className={dash.caption}>Route</span>
             </div>
 
-            <div
-                style={{
-                    height: '300px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    border: '1px solid #ddd',
-                    backgroundColor: '#f0f0f0',
-                }}
-            >
-                <iframe
-                    title="Day route"
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(finalSpot)}&output=embed`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    allowFullScreen
-                />
+            <div>
+                <h2 className={dash.sectionTitle}>Day route</h2>
+
+                <div className={`${dash.options} ${styles.modeOptions}`}>
+                    <button
+                        type="button"
+                        className={dash.option}
+                        aria-pressed={travelMode === 'walking'}
+                        onClick={() => setTravelMode('walking')}
+                    >
+                        Walking
+                    </button>
+                    <button
+                        type="button"
+                        className={dash.option}
+                        aria-pressed={travelMode === 'driving'}
+                        onClick={() => setTravelMode('driving')}
+                    >
+                        Driving
+                    </button>
+                </div>
+
+                <div className={styles.mapFrame}>
+                    <iframe
+                        title="Day route"
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(finalSpot)}&output=embed`}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                        allowFullScreen
+                    />
+                </div>
+
+                <a
+                    className={styles.link}
+                    href={mapUrl.replace('&output=embed', '')}
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <span>Open full route in Google Maps</span>
+                    <span className={styles.linkArrow} aria-hidden="true">→</span>
+                </a>
             </div>
-            <a
-                href={mapUrl.replace('&output=embed', '')}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                    display: 'block',
-                    marginTop: '10px',
-                    padding: '10px',
-                    textAlign: 'center',
-                    backgroundColor: '#2c3e50',
-                    color: '#fff',
-                    borderRadius: '4px',
-                    textDecoration: 'none',
-                    fontWeight: 'bold'
-                }}
-            >
-                Open full route in Google Maps
-            </a>
         </section>
     );
 }
