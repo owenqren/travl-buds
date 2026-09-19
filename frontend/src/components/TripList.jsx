@@ -4,11 +4,12 @@ import styles from './Dashboard.module.css';
  * TripList displays the user's saved itineraries.
  *
  * It renders an empty state when no trips exist and lets users open the details
- * view for a selected trip.
+ * view for a selected trip. Trips the user was added to (rather than created)
+ * are marked "Shared" so they're not mistaken for the user's own trips.
  */
 
 // Accept 'trips' directly as a prop from App.jsx
-export default function TripList({ trips, onViewDetails }) {
+export default function TripList({ trips, onViewDetails, currentUserId }) {
     return (
         <section className={styles.section}>
             <div className={styles.rail}>
@@ -32,26 +33,35 @@ export default function TripList({ trips, onViewDetails }) {
                     </div>
                 ) : (
                     <ul className={styles.tripList}>
-                        {trips.map((trip) => (
-                            <li key={trip.id}>
-                                <button
-                                    type="button"
-                                    className={styles.tripRow}
-                                    onClick={() => onViewDetails(trip.id)}
-                                >
-                                    <span>
-                                        <span className={styles.tripName}>{trip.name}</span>
-                                        <span className={styles.tripDestination}>{trip.destination}</span>
-                                    </span>
-                                    <span className={styles.tripDates}>
-                                        {trip.startDate}
-                                        <br />
-                                        {trip.endDate}
-                                    </span>
-                                    <span className={styles.arrow} aria-hidden="true">→</span>
-                                </button>
-                            </li>
-                        ))}
+                        {trips.map((trip) => {
+                            const isOwner = trip.user?.id === currentUserId;
+
+                            return (
+                                <li key={trip.id}>
+                                    <button
+                                        type="button"
+                                        className={styles.tripRow}
+                                        onClick={() => onViewDetails(trip.id)}
+                                    >
+                                        <span>
+                                            <span className={styles.tripName}>{trip.name}</span>
+                                            <span className={styles.tripDestination}>{trip.destination}</span>
+                                        </span>
+                                        <span className={styles.tripMeta}>
+                                            <span className={`${styles.tripBadge} ${isOwner ? '' : styles.tripBadgeShared}`}>
+                                                {isOwner ? 'Owner' : 'Shared'}
+                                            </span>
+                                            <span className={styles.tripDates}>
+                                                {trip.startDate}
+                                                <br />
+                                                {trip.endDate}
+                                            </span>
+                                        </span>
+                                        <span className={styles.arrow} aria-hidden="true">→</span>
+                                    </button>
+                                </li>
+                            );
+                        })}
                     </ul>
                 )}
             </div>

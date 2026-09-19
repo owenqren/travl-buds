@@ -137,7 +137,7 @@ function App() {
                         <div className={styles.stack}>
                             <TripForm onTripAdded={handleTripAdded} />
                             <hr className={styles.divider} />
-                            <TripList trips={trips} onViewDetails={handleViewTripDetails} />
+                            <TripList trips={trips} onViewDetails={handleViewTripDetails} currentUserId={currentUser.id} />
                         </div>
                     }
                 />
