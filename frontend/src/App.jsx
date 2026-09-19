@@ -4,7 +4,7 @@ import TripForm from './components/TripForm';
 import TripList from './components/TripList';
 import TripDetails from './components/TripDetails';
 import './App.css';
-import LoginForm from './components/LoginForm';
+import AuthLanding from './components/AuthLanding';
 import { authFetch } from './utils/authFetch';
 
 /**
@@ -67,16 +67,7 @@ function App() {
     };
 
     if (!currentUser) {
-        return (
-            <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-                <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <h1 style={{ color: '#2c3e50', margin: '0 0 8px' }}>TravlBuds</h1>
-                    <p style={{ color: '#7f8c8d', margin: 0 }}>Collaborative vacation planning</p>
-                </header>
-
-                <LoginForm onLogin={handleLogin} />
-            </div>
-        );
+        return <AuthLanding onLogin={handleLogin} />;
     }
 
     return (

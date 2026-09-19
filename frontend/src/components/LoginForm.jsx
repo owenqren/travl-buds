@@ -1,5 +1,11 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import styles from './AuthLanding.module.css';
 
+/**
+ * LoginForm handles both login and registration against the auth API.
+ *
+ * @param {(authResponse: object) => void} onLogin Called with the auth payload on success.
+ */
 export default function LoginForm({ onLogin }) {
     const [mode, setMode] = useState('login');
     const [formData, setFormData] = useState({
@@ -10,12 +16,15 @@ export default function LoginForm({ onLogin }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const fieldId = useId();
+    const isRegister = mode === 'register';
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+        const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
 
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
@@ -38,57 +47,101 @@ export default function LoginForm({ onLogin }) {
         }
     };
 
+    const switchMode = () => {
+        setError('');
+        setMode(isRegister ? 'login' : 'register');
+    };
+
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h2 style={{ color: '#2c3e50', textAlign: 'center' }}>
-                {mode === 'login' ? 'Log In' : 'Sign Up'}
-            </h2>
+        <>
+            <header className={styles.panelHead}>
+                <h2 className={styles.panelTitle}>
+                    {isRegister ? 'Create account' : 'Log in'}
+                </h2>
+                <span className={styles.panelStep}>
+                    {isRegister ? '3 fields' : '2 fields'}
+                </span>
+            </header>
 
-            {mode === 'register' && (
-                <input
-                    placeholder="Username"
-                    value={formData.username}
-                    required
-                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                />
-            )}
+            <form className={styles.form} onSubmit={handleSubmit} noValidate={false}>
+                {isRegister && (
+                    <div className={styles.field}>
+                        <label className={styles.label} htmlFor={`${fieldId}-username`}>
+                            Username
+                        </label>
+                        <input
+                            id={`${fieldId}-username`}
+                            className={styles.input}
+                            name="username"
+                            autoComplete="username"
+                            placeholder="how the group sees you"
+                            value={formData.username}
+                            required
+                            onChange={e => setFormData({ ...formData, username: e.target.value })}
+                        />
+                    </div>
+                )}
 
-            <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                required
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
+                <div className={styles.field}>
+                    <label className={styles.label} htmlFor={`${fieldId}-email`}>
+                        Email
+                    </label>
+                    <input
+                        id={`${fieldId}-email`}
+                        className={styles.input}
+                        type="email"
+                        name="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={formData.email}
+                        required
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    />
+                </div>
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                required
-                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
+                <div className={styles.field}>
+                    <label className={styles.label} htmlFor={`${fieldId}-password`}>
+                        Password
+                    </label>
+                    <input
+                        id={`${fieldId}-password`}
+                        className={styles.input}
+                        type="password"
+                        name="password"
+                        autoComplete={isRegister ? 'new-password' : 'current-password'}
+                        placeholder="••••••••"
+                        value={formData.password}
+                        required
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    />
+                </div>
 
-            {error && <p style={{ color: '#e74c3c', margin: 0 }}>{error}</p>}
+                {error && (
+                    <p className={styles.error} role="alert">
+                        {error}
+                    </p>
+                )}
 
-            <button
-                type="submit"
-                disabled={loading}
-                style={{ padding: '10px', backgroundColor: '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
-            >
-                {loading ? 'Working...' : mode === 'login' ? 'Log In' : 'Sign Up'}
-            </button>
+                <div className={styles.actions}>
+                    <button className={styles.submit} type="submit" disabled={loading}>
+                        <span>
+                            {loading
+                                ? 'Working…'
+                                : isRegister
+                                    ? 'Create account'
+                                    : 'Log in'}
+                        </span>
+                        <span className={styles.submitArrow} aria-hidden="true">→</span>
+                    </button>
 
-            <button
-                type="button"
-                onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-                style={{ background: 'none', border: 'none', color: '#2980b9', cursor: 'pointer' }}
-            >
-                {mode === 'login' ? 'Need an account? Sign up' : 'Already have an account? Log in'}
-            </button>
-        </form>
+                    <p className={styles.switchRow}>
+                        {isRegister ? 'Already have an account?' : 'No account yet?'}
+                        <button className={styles.switch} type="button" onClick={switchMode}>
+                            {isRegister ? 'Log in' : 'Sign up'}
+                        </button>
+                    </p>
+                </div>
+            </form>
+        </>
     );
 }
