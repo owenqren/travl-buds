@@ -1,0 +1,529 @@
+/*
+ * Dashboard — editorial single-column shell for the signed-in surface.
+ *
+ * Sections hang off a narrow left rail; structure is carried by whitespace and
+ * hairline rules. No boxed cards, no gradients, no glows. Tokens come from
+ * index.css so light/dark inherit the rest of the app.
+ */
+
+.shell {
+  --rule: var(--border-clean);
+  --ink: var(--text-h);
+  --muted: var(--text);
+  --mark: var(--accent);
+  --danger: #c22f4f;
+  --rail: 7rem;
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-massive) 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-colossal);
+  /* #root centers text globally; this surface is left-aligned editorial. */
+  text-align: left;
+}
+
+@media (prefers-color-scheme: dark) {
+  .shell {
+    --danger: #ff7a95;
+  }
+}
+
+/* ---------------------------------------------------------------- masthead */
+
+.masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'eyebrow eyebrow'
+    'wordmark actions';
+  align-items: end;
+  row-gap: 1.25rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.eyebrow {
+  grid-area: eyebrow;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.wordmark {
+  grid-area: wordmark;
+  margin: 0;
+  font-family: var(--heading);
+  font-size: clamp(2.5rem, 8vw, 4.25rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  color: var(--ink);
+}
+
+/* Weight contrast inside the lockup — heavy against thin. */
+.wordmarkThin {
+  font-weight: 200;
+  letter-spacing: -0.035em;
+  color: var(--muted);
+}
+
+.actions {
+  grid-area: actions;
+  display: flex;
+  gap: 1.5rem;
+  padding-bottom: 0.3rem;
+}
+
+/* Minimal line underscore that draws in on hover. */
+.textButton {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.textButton::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.textButton:hover::after,
+.textButton:focus-visible::after,
+.textButton[aria-expanded='true']::after {
+  transform: scaleX(1);
+}
+
+.textButton:focus-visible {
+  outline: none;
+  color: var(--mark);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.danger:focus-visible {
+  color: var(--danger);
+}
+
+/* ---------------------------------------------------------------- settings */
+
+.settings {
+  margin: 0;
+}
+
+.settingRow {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  column-gap: 1.5rem;
+  align-items: baseline;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+}
+
+.option {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  color: var(--muted);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.option::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.option:hover,
+.option:focus-visible {
+  opacity: 1;
+  color: var(--ink);
+}
+
+.option:hover::after,
+.option:focus-visible::after,
+.option[aria-pressed='true']::after {
+  transform: scaleX(1);
+}
+
+.option[aria-pressed='true'] {
+  opacity: 1;
+  color: var(--ink);
+}
+
+.option:focus-visible {
+  outline: none;
+  color: var(--mark);
+}
+
+/* ---------------------------------------------------------------- sections */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-massive);
+}
+
+.divider {
+  width: 100%;
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--border-clean);
+}
+
+/* Narrow rail on the left, wide content column on the right. */
+.section {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  column-gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 520px) {
+  .section,
+  .settingRow {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1.25rem;
+  }
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+}
+
+.caption {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--heading);
+  font-size: clamp(1.75rem, 5vw, 2.375rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------- form */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin-top: 2.25rem;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+/*
+ * Underline-only inputs. The `.form` prefix outranks the global
+ * input[type='date'] rules in index.css.
+ */
+.form .input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0 0.65rem;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  cursor: text;
+  outline: none;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.form .input::placeholder {
+  color: var(--muted);
+  opacity: 0.38;
+}
+
+.form .input:hover {
+  border-bottom-color: var(--muted);
+}
+
+.form .input:focus {
+  border-bottom-color: var(--ink);
+  box-shadow: none;
+}
+
+.field:focus-within .label {
+  opacity: 1;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 1.05rem 1.35rem;
+  border: none;
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--mark);
+  letter-spacing: 0.035em;
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--mark);
+  outline-offset: 3px;
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.arrow {
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.submit:hover:not(:disabled) .arrow,
+.tripRow:hover .arrow,
+.tripRow:focus-visible .arrow {
+  transform: translateX(4px);
+}
+
+/* ------------------------------------------------------------------ trips */
+
+.tripList {
+  margin: 2.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.tripRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1.5rem 0;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.tripRow:focus-visible {
+  outline: none;
+}
+
+.tripName {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.tripRow:hover .tripName,
+.tripRow:focus-visible .tripName {
+  letter-spacing: -0.03em;
+  color: var(--mark);
+}
+
+.tripDestination {
+  display: block;
+  margin-top: 0.55rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.005em;
+  color: var(--muted);
+}
+
+.tripDates {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: 0.16em;
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.empty {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 5vw, 2.375rem);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--muted);
+}
+
+.emptyNote {
+  margin: 0.9rem 0 0;
+  max-width: 34ch;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.footer {
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.footerLabel {
+  opacity: 0.5;
+}
+
+.footerLink {
+  position: relative;
+  margin-left: 0.6rem;
+  color: var(--ink);
+  text-decoration: none;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.footerLink::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.footerLink:hover::after,
+.footerLink:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.footerLink:focus-visible {
+  outline: none;
+  color: var(--mark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell *,
+  .shell *::after {
+    transition-duration: 1ms !important;
+  }
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { authFetch } from '../utils/authFetch';
+import styles from './Dashboard.module.css';
 
 /**
  * TripForm lets a user create a new trip.
@@ -32,42 +33,64 @@ export default function TripForm({ onTripAdded }) {
     };
     const isValid = tripData.name.trim() && tripData.destination.trim() && tripData.startDate && tripData.endDate;
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <input
-                name="name"
-                placeholder="Trip Name"
-                value={tripData.name}
-                onChange={e => setTripData({ ...tripData, name: e.target.value })}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
-            <input
-                name="destination"
-                placeholder="Destination"
-                value={tripData.destination}
-                onChange={e => setTripData({ ...tripData, destination: e.target.value })}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
-            <input
-                type="date"
-                value={tripData.startDate}
-                onChange={e => setTripData({ ...tripData, startDate: e.target.value })}
-                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(e); }}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
-            />
-            <input
-                type="date"
-                value={tripData.endDate}
-                onChange={e => setTripData({ ...tripData, endDate: e.target.value })}
-                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(e); }}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
-            />
-            <button
-                type="submit"
-                disabled={!isValid}
-                style={{ padding: '10px', backgroundColor: isValid ? '#2c3e50' : '#95a5a6', color: '#fff', border: 'none', borderRadius: '4px', cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: isValid ? 1 : 0.6 }}
-            >
-                Add Trip
-            </button>
-        </form>
+        <section className={styles.section}>
+            <div className={styles.rail}>
+                <span className={styles.caption}>01</span>
+                <span className={styles.caption}>Plan</span>
+            </div>
+
+            <div>
+                <h2 className={styles.sectionTitle}>New trip</h2>
+
+                <form onSubmit={handleSubmit} className={styles.form}>
+                    <label className={styles.field}>
+                        <span className={styles.label}>Trip name</span>
+                        <input
+                            name="name"
+                            className={styles.input}
+                            placeholder="Lisbon with the crew"
+                            value={tripData.name}
+                            onChange={e => setTripData({ ...tripData, name: e.target.value })}
+                        />
+                    </label>
+                    <label className={styles.field}>
+                        <span className={styles.label}>Destination</span>
+                        <input
+                            name="destination"
+                            className={styles.input}
+                            placeholder="Lisbon, Portugal"
+                            value={tripData.destination}
+                            onChange={e => setTripData({ ...tripData, destination: e.target.value })}
+                        />
+                    </label>
+                    <div className={styles.fieldRow}>
+                        <label className={styles.field}>
+                            <span className={styles.label}>Start</span>
+                            <input
+                                type="date"
+                                className={styles.input}
+                                value={tripData.startDate}
+                                onChange={e => setTripData({ ...tripData, startDate: e.target.value })}
+                                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(e); }}
+                            />
+                        </label>
+                        <label className={styles.field}>
+                            <span className={styles.label}>End</span>
+                            <input
+                                type="date"
+                                className={styles.input}
+                                value={tripData.endDate}
+                                onChange={e => setTripData({ ...tripData, endDate: e.target.value })}
+                                onKeyDown={e => { if (e.key === 'Enter') handleSubmit(e); }}
+                            />
+                        </label>
+                    </div>
+                    <button type="submit" disabled={!isValid} className={styles.submit}>
+                        <span>Add trip</span>
+                        <span className={styles.arrow} aria-hidden="true">→</span>
+                    </button>
+                </form>
+            </div>
+        </section>
     );
 }
