@@ -48,13 +48,18 @@ export default function TripRouteMap({ locations }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const hasLocations = Boolean(locations?.length);
+
+    // Clear stale results once the locations are removed. Adjusting state during
+    // render (guarded so it settles) avoids setting state synchronously in an effect.
+    if (!hasLocations && (points.length > 0 || route.length > 0 || steps.length > 0)) {
+        setPoints([]);
+        setRoute([]);
+        setSteps([]);
+    }
+
     useEffect(() => {
-        if (!locations || locations.length === 0) {
-            setPoints([]);
-            setRoute([]);
-            setSteps([]);
-            return;
-        }
+        if (!hasLocations) return;
 
         const loadRoute = async () => {
             setLoading(true);
@@ -140,7 +145,7 @@ export default function TripRouteMap({ locations }) {
         };
 
         loadRoute();
-    }, [locations]);
+    }, [locations, hasLocations]);
 
     if (!locations || locations.length === 0) return null;
 

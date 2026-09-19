@@ -31,9 +31,13 @@ const weatherDescriptions = {
 };
 
 export default function WeatherForecast({ destination, tripDays, units }) {
-    const [weather, setWeather] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    // Result of the latest fetch, tagged with the destination it was fetched for.
+    const [result, setResult] = useState({ destination: null, weather: null, error: null });
+
+    const isCurrent = result.destination === destination;
+    const loading = Boolean(destination) && !isCurrent;
+    const weather = isCurrent ? result.weather : null;
+    const error = isCurrent ? result.error : null;
 
     const displayTemp = (tempC) => {
         if (units?.temperature === 'F') {
@@ -44,16 +48,9 @@ export default function WeatherForecast({ destination, tripDays, units }) {
     };
 
     useEffect(() => {
-        if (!destination) {
-            setWeather(null);
-            setError(null);
-            setLoading(false);
-            return;
-        }
+        if (!destination) return;
 
-        setLoading(true);
-        setError(null);
-        setWeather(null);
+        let cancelled = false;
 
         fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1`)
             .then(res => res.json())
@@ -68,14 +65,16 @@ export default function WeatherForecast({ destination, tripDays, units }) {
             })
             .then(res => res.json())
             .then(weatherData => {
-                setWeather(weatherData.daily);
-                setLoading(false);
+                if (!cancelled) setResult({ destination, weather: weatherData.daily, error: null });
             })
             .catch(err => {
                 console.error("Weather fetch failed:", err);
-                setError(err.message || 'Failed to load weather.');
-                setLoading(false);
+                if (!cancelled) setResult({ destination, weather: null, error: err.message || 'Failed to load weather.' });
             });
+
+        return () => {
+            cancelled = true;
+        };
     }, [destination]);
 
     if (loading) return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>Loading weather...</p>;
