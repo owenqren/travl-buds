@@ -3,7 +3,6 @@ import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import TripForm from './components/TripForm';
 import TripList from './components/TripList';
 import TripDetails from './components/TripDetails';
-import './App.css';
 import AuthLanding from './components/AuthLanding';
 import { authFetch } from './utils/authFetch';
 import styles from './components/Dashboard.module.css';
