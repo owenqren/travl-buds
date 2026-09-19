@@ -123,6 +123,15 @@
   color: var(--mark);
 }
 
+.textButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.textButton:disabled::after {
+  display: none;
+}
+
 .danger {
   color: var(--danger);
 }
@@ -294,10 +303,10 @@
 }
 
 /*
- * Underline-only inputs. The `.form` prefix outranks the global
+ * Underline-only inputs. The `.field` prefix outranks the global
  * input[type='date'] rules in index.css.
  */
-.form .input {
+.field .input {
   width: 100%;
   box-sizing: border-box;
   padding: 0.5rem 0 0.65rem;
@@ -315,16 +324,16 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
-.form .input::placeholder {
+.field .input::placeholder {
   color: var(--muted);
   opacity: 0.38;
 }
 
-.form .input:hover {
+.field .input:hover {
   border-bottom-color: var(--muted);
 }
 
-.form .input:focus {
+.field .input:focus {
   border-bottom-color: var(--ink);
   box-shadow: none;
 }

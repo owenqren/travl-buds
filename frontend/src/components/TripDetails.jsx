@@ -3,6 +3,8 @@ import WeatherForecast from './WeatherForecast';
 import TripMap from './TripMap';
 import VoteSpotMap from './VoteSpotMap';
 import { authFetch } from '../utils/authFetch';
+import dash from './Dashboard.module.css';
+import styles from './TripPage.module.css';
 
 /**
  * TripDetails displays and manages a selected trip itinerary.
@@ -288,174 +290,201 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const activityValid = newActivity.name.trim() && newActivity.address.trim() && newActivity.visitTime;
     const spotValid = newLocation.trim() && newLocationAddress.trim() && newLocationVisitTime;
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <p className={styles.note}>Loading...</p>;
+
+    const selectedDay = days.find(day => day.id === selectedDayId);
+
+    const statusClass = (status) => {
+        if (status === 'APPROVED') return styles.statusApproved;
+        if (status === 'REJECTED') return styles.statusRejected;
+        return styles.statusPending;
+    };
 
     return (
-        <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}>
-            <button
-                onClick={onBack}
-                style={{ marginBottom: '20px', padding: '8px 12px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: '#2c3e50', color: '#fff' }}
-            >
-                ← Back
-            </button>
-
-            <h2 style={{ color: '#2c3e50', marginTop: 0 }}>{trip?.name || `Trip #${tripId}`}</h2>
-            <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>📍 {trip?.destination}</p>
-            {/* SHARE LINK */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '16px' }}>
+        <div className={styles.page}>
+            <header className={styles.header}>
                 <button
                     type="button"
-                    onClick={handleCopyShareLink}
-                    style={{ padding: '8px 12px', backgroundColor: '#fff', color: '#2c3e50', border: '1px solid #b8c2cc', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    className={`${dash.textButton} ${styles.back}`}
+                    onClick={onBack}
                 >
-                    Share Link
+                    ← Back to trips
                 </button>
-                {shareStatus && (
-                    <span style={{ fontSize: '13px', color: '#7f8c8d' }}>{shareStatus}</span>
-                )}
-            </div>
+
+                <h2 className={styles.title}>{trip?.name || `Trip #${tripId}`}</h2>
+                <p className={styles.destination}>{trip?.destination}</p>
+
+                {/* SHARE LINK */}
+                <div className={styles.share}>
+                    <button type="button" className={dash.textButton} onClick={handleCopyShareLink}>
+                        Share link
+                    </button>
+                    {shareStatus && (
+                        <span className={styles.shareStatus}>{shareStatus}</span>
+                    )}
+                </div>
+            </header>
 
             {/* TRIP ACCESS */}
-            <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
-                <h4 style={{ margin: '0 0 12px', color: '#2c3e50' }}>🔒 Trip Access</h4>
-                {members.length > 0 && (
-                    <ul style={{ listStyle: 'none', padding: 0, marginBottom: '12px' }}>
-                        {members.map(m => (
-                            <li key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: '14px', color: '#2c3e50' }}>
-                                <span>
-                                    📧 {m.email}
-                                    <span style={{
-                                        marginLeft: '8px', fontSize: '11px', padding: '2px 6px', borderRadius: '10px',
-                                        backgroundColor: m.status === 'APPROVED' ? '#eafaf1' : m.status === 'REJECTED' ? '#fdecea' : '#fef9e7',
-                                        color: m.status === 'APPROVED' ? '#27ae60' : m.status === 'REJECTED' ? '#e74c3c' : '#e67e22'
-                                    }}>
-                                        {m.status}
-                                    </span>
-                                </span>
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                    {m.status === 'PENDING' && (
-                                        <>
-                                            <button
-                                                onClick={() => handleApproveMember(m.id)}
-                                                style={{ padding: '3px 8px', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                                            >
-                                                Approve
-                                            </button>
-                                            <button
-                                                onClick={() => handleRejectMember(m.id)}
-                                                style={{ padding: '3px 8px', backgroundColor: '#e74c3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                                            >
-                                                Reject
-                                            </button>
-                                        </>
-                                    )}
-                                    <button
-                                        onClick={() => handleRemoveMember(m.email)}
-                                        style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '13px' }}
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                        type="email"
-                        placeholder="Add email address..."
-                        value={newMemberEmail}
-                        onChange={e => setNewMemberEmail(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') handleAddMember(); }}
-                        style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }}
-                    />
-                    <button
-                        type="button"
-                        onClick={handleAddMember}
-                        disabled={!newMemberEmail.trim()}
-                        style={{ padding: '8px 14px', backgroundColor: newMemberEmail.trim() ? '#2c3e50' : '#95a5a6', color: '#fff', border: 'none', borderRadius: '4px', cursor: newMemberEmail.trim() ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: newMemberEmail.trim() ? 1 : 0.6 }}
-                    >
-                        Add
-                    </button>
+            <section className={dash.section}>
+                <div className={dash.rail}>
+                    <span className={dash.caption}>Group</span>
                 </div>
-                {memberStatus && (
-                    <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#7f8c8d' }}>{memberStatus}</p>
-                )}
-            </div>
+
+                <div>
+                    <h2 className={dash.sectionTitle}>Trip access</h2>
+
+                    {members.length > 0 && (
+                        <ul className={`${styles.rows} ${styles.rowsFirst}`}>
+                            {members.map(m => (
+                                <li key={m.id} className={styles.memberRow}>
+                                    <span className={styles.memberInfo}>
+                                        <span className={styles.memberEmail}>{m.email}</span>
+                                        <span className={`${styles.status} ${statusClass(m.status)}`}>{m.status}</span>
+                                    </span>
+                                    <span className={styles.memberActions}>
+                                        {m.status === 'PENDING' && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className={dash.textButton}
+                                                    onClick={() => handleApproveMember(m.id)}
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`${dash.textButton} ${dash.danger}`}
+                                                    onClick={() => handleRejectMember(m.id)}
+                                                >
+                                                    Reject
+                                                </button>
+                                            </>
+                                        )}
+                                        <button
+                                            type="button"
+                                            className={`${dash.textButton} ${dash.danger}`}
+                                            onClick={() => handleRemoveMember(m.email)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <div className={styles.inlineForm}>
+                        <label className={`${dash.field} ${styles.grow}`}>
+                            <span className={dash.label}>Add by email</span>
+                            <input
+                                type="email"
+                                className={dash.input}
+                                placeholder="friend@example.com"
+                                value={newMemberEmail}
+                                onChange={e => setNewMemberEmail(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddMember(); }}
+                            />
+                        </label>
+                        <button
+                            type="button"
+                            className={`${dash.textButton} ${styles.inlineAction}`}
+                            onClick={handleAddMember}
+                            disabled={!newMemberEmail.trim()}
+                        >
+                            Add →
+                        </button>
+                    </div>
+                    {memberStatus && (
+                        <p className={`${styles.note} ${styles.noteTop}`}>{memberStatus}</p>
+                    )}
+                </div>
+            </section>
+
             <TripMap destination={trip?.destination} mapProvider={units.mapProvider} />
 
             {/* DAY SELECTOR */}
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', alignItems: 'center' }}>
-                {days.map(day => (
-                    <button
-                        key={day.id}
-                        onClick={() => setSelectedDayId(day.id)}
-                        style={{
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            border: '1px solid #ccc',
-                            backgroundColor: selectedDayId === day.id ? '#2c3e50' : '#fff',
-                            color: selectedDayId === day.id ? '#fff' : '#2c3e50',
-                            cursor: 'pointer',
-                            fontWeight: selectedDayId === day.id ? 'bold' : 'normal'
-                        }}
-                    >
-                        {day.date}
-                    </button>
-                ))}
+            <section className={dash.section}>
+                <div className={dash.rail}>
+                    <span className={dash.caption}>Calendar</span>
+                </div>
 
-                {/* Add Day */}
-                <input
-                    type="date"
-                    value={newDayDate || ''}
-                    onChange={e => setNewDayDate(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleAddDay(); }}
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', colorScheme: 'light', color: '#2c3e50', backgroundColor: '#fff' }}
-                />
-                <button
-                    onClick={handleAddDay}
-                    disabled={!newDayDate}
-                    style={{ padding: '8px 16px', backgroundColor: newDayDate ? '#3498db' : '#95a5a6', color: '#fff', border: 'none', borderRadius: '20px', cursor: newDayDate ? 'pointer' : 'not-allowed', opacity: newDayDate ? 1 : 0.6 }}
-                >
-                    + Add Day
-                </button>
-            </div>
+                <div>
+                    <h2 className={dash.sectionTitle}>Days</h2>
 
-            <hr style={{ border: 'none', borderTop: '1px solid #ddd', marginBottom: '20px' }} />
+                    {days.length > 0 && (
+                        <div className={`${dash.options} ${styles.dayOptions}`}>
+                            {days.map(day => (
+                                <button
+                                    key={day.id}
+                                    type="button"
+                                    className={dash.option}
+                                    aria-pressed={selectedDayId === day.id}
+                                    onClick={() => setSelectedDayId(day.id)}
+                                >
+                                    {day.date}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Add Day */}
+                    <div className={styles.inlineForm}>
+                        <label className={`${dash.field} ${styles.grow}`}>
+                            <span className={dash.label}>Add a day</span>
+                            <input
+                                type="date"
+                                className={dash.input}
+                                value={newDayDate || ''}
+                                onChange={e => setNewDayDate(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleAddDay(); }}
+                            />
+                        </label>
+                        <button
+                            type="button"
+                            className={`${dash.textButton} ${styles.inlineAction}`}
+                            onClick={handleAddDay}
+                            disabled={!newDayDate}
+                        >
+                            Add day →
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <WeatherForecast destination={trip?.destination} tripDays={days} units={units} />
             <VoteSpotMap locations={dayStops} destination={trip?.destination} />
 
             {!selectedDayId ? (
-                <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Add a day above to get started!</p>
+                <section className={dash.section}>
+                    <div className={dash.rail}>
+                        <span className={dash.caption}>Next</span>
+                    </div>
+                    <p className={styles.note}>Add a day above to get started!</p>
+                </section>
             ) : (
-                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-
+                <>
                     {/* ACTIVITY IDEAS SECTION */}
-                    <div style={{ flex: 1, minWidth: '280px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
-                        <h3 style={{ marginTop: 0, color: '#27ae60' }}>Activity Ideas</h3>
+                    <section className={dash.section}>
+                        <div className={dash.rail}>
+                            <span className={dash.caption}>Activities</span>
+                            {selectedDay && <span className={dash.caption}>{selectedDay.date}</span>}
+                        </div>
 
-                        <div style={{ backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
-                            <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                        <div>
+                            <h2 className={dash.sectionTitle}>Activity ideas</h2>
+
+                            <p className={styles.subhead}>Assistant</p>
+                            <div className={styles.chatLog}>
                                 {aiMessages.length === 0 ? (
-                                    <p style={{ margin: 0, color: '#7f8c8d', fontSize: '14px' }}>
+                                    <p className={styles.note}>
                                         Ask for trip ideas or use the suggestion button.
                                     </p>
                                 ) : (
                                     aiMessages.map((message, index) => (
                                         <div
                                             key={index}
-                                            style={{
-                                                alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
-                                                maxWidth: '85%',
-                                                padding: '8px 10px',
-                                                borderRadius: '8px',
-                                                backgroundColor: message.role === 'user' ? '#2c3e50' : '#fff',
-                                                color: message.role === 'user' ? '#fff' : '#2c3e50',
-                                                border: message.role === 'user' ? 'none' : '1px solid #ddd',
-                                                whiteSpace: 'pre-wrap',
-                                                fontSize: '13px',
-                                                lineHeight: '1.4'
-                                            }}
+                                            className={message.role === 'user' ? styles.bubbleUser : styles.bubbleAi}
                                         >
                                             {message.content}
                                         </div>
@@ -463,213 +492,243 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                 )}
                             </div>
 
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <input
-                                    type="text"
-                                    placeholder="Ask the AI..."
-                                    value={aiInput}
-                                    onChange={e => setAiInput(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') {
-                                            sendAiMessage(aiInput);
-                                            setAiInput('');
-                                        }
-                                    }}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                                />
+                            <div className={styles.inlineForm}>
+                                <label className={`${dash.field} ${styles.grow}`}>
+                                    <span className={dash.label}>Ask the AI</span>
+                                    <input
+                                        type="text"
+                                        className={dash.input}
+                                        placeholder="Somewhere quiet for lunch..."
+                                        value={aiInput}
+                                        onChange={e => setAiInput(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') {
+                                                sendAiMessage(aiInput);
+                                                setAiInput('');
+                                            }
+                                        }}
+                                    />
+                                </label>
                                 <button
                                     type="button"
+                                    className={`${dash.textButton} ${styles.inlineAction}`}
                                     onClick={() => {
                                         sendAiMessage(aiInput);
                                         setAiInput('');
                                     }}
                                     disabled={aiLoading || !aiInput.trim()}
-                                    style={{ padding: '8px 12px', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: '4px', cursor: aiLoading || !aiInput.trim() ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
                                 >
-                                    Send
+                                    Send →
                                 </button>
                             </div>
 
                             <button
                                 type="button"
+                                className={`${dash.submit} ${styles.suggest}`}
                                 onClick={handleSuggestIdeas}
                                 disabled={aiLoading || !selectedDayId}
-                                style={{ width: '100%', padding: '9px', marginTop: '8px', backgroundColor: aiLoading ? '#95a5a6' : '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: aiLoading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
                             >
-                                {aiLoading ? 'Thinking...' : 'Suggest Ideas'}
+                                <span>{aiLoading ? 'Thinking...' : 'Suggest ideas'}</span>
+                                <span className={dash.arrow} aria-hidden="true">→</span>
                             </button>
-                        </div>
 
-                        {activities.length === 0 ? (
-                            <p style={{ color: '#7f8c8d' }}>No activities yet. Add one below!</p>
-                        ) : (
-                            <ul style={{ listStyleType: 'none', padding: 0 }}>
-                                {activities.map(activity => (
-                                    <li key={activity.id} style={{ padding: '10px', borderBottom: '1px solid #eee' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <p className={styles.subhead}>On the plan</p>
+                            {activities.length === 0 ? (
+                                <p className={styles.note}>No activities yet. Add one below!</p>
+                            ) : (
+                                <ul className={styles.rows}>
+                                    {activities.map(activity => (
+                                        <li key={activity.id} className={styles.item}>
                                             <div>
-                                                <span style={{ fontWeight: 'bold' }}>{activity.name}</span>
+                                                <span className={styles.itemName}>{activity.name}</span>
                                                 {activity.category && (
-                                                    <span style={{ marginLeft: '8px', fontSize: '12px', color: '#7f8c8d', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '10px' }}>
-                                                        {activity.category}
+                                                    <span className={styles.itemTag}>{activity.category}</span>
+                                                )}
+                                                {(activity.visitTime || activity.address) && (
+                                                    <span className={styles.itemMeta}>
+                                                        {[activity.visitTime, activity.address].filter(Boolean).join(' · ')}
                                                     </span>
                                                 )}
-
-                                                {activity.address && (
-                                                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
-                                                        📍 {activity.address}
-                                                    </p>
-                                                )}
-                                                {activity.visitTime && (
-                                                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
-                                                        🕒 {activity.visitTime}
-                                                    </p>
-                                                )}
                                             </div>
-                                            <button
-                                                onClick={() => handleJoinActivity(activity.id)}
-                                                style={{ padding: '5px 10px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                Join
-                                            </button>
-                                        </div>
-                                        <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#95a5a6' }}>
-                                            {activity.interestedUsers?.length || 0} interested
-                                        </p>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                                            <div className={styles.itemSide}>
+                                                <button
+                                                    type="button"
+                                                    className={dash.textButton}
+                                                    onClick={() => handleJoinActivity(activity.id)}
+                                                >
+                                                    Join
+                                                </button>
+                                                <span className={styles.itemCount}>
+                                                    {activity.interestedUsers?.length || 0} interested
+                                                </span>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
 
-                        <div style={{ marginTop: '15px' }}>
-                            <input
-                                type="text"
-                                placeholder="Activity name"
-                                value={newActivity.name}
-                                onChange={e => setNewActivity({ ...newActivity, name: e.target.value })}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Category (e.g. Museum, Hike)"
-                                value={newActivity.category}
-                                onChange={e => setNewActivity({ ...newActivity, category: e.target.value })}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Precise address required"
-                                value={newActivity.address}
-                                required
-                                onChange={e => setNewActivity({ ...newActivity, address: e.target.value })}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <input
-                                type="time"
-                                value={newActivity.visitTime}
-                                required
-                                onChange={e => setNewActivity({ ...newActivity, visitTime: e.target.value })}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <button
-                                onClick={handleAddActivity}
-                                disabled={!activityValid}
-                                style={{ width: '100%', padding: '10px', backgroundColor: activityValid ? '#27ae60' : '#95a5a6', color: 'white', border: 'none', borderRadius: '4px', cursor: activityValid ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: activityValid ? 1 : 0.6 }}
-                            >
-                                Add Activity
-                            </button>
+                            <p className={styles.subhead}>Add an activity</p>
+                            <div className={styles.formStack}>
+                                <label className={dash.field}>
+                                    <span className={dash.label}>Name</span>
+                                    <input
+                                        type="text"
+                                        className={dash.input}
+                                        placeholder="Activity name"
+                                        value={newActivity.name}
+                                        onChange={e => setNewActivity({ ...newActivity, name: e.target.value })}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
+                                    />
+                                </label>
+                                <div className={dash.fieldRow}>
+                                    <label className={dash.field}>
+                                        <span className={dash.label}>Category</span>
+                                        <input
+                                            type="text"
+                                            className={dash.input}
+                                            placeholder="Museum, Hike"
+                                            value={newActivity.category}
+                                            onChange={e => setNewActivity({ ...newActivity, category: e.target.value })}
+                                            onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
+                                        />
+                                    </label>
+                                    <label className={dash.field}>
+                                        <span className={dash.label}>Time</span>
+                                        <input
+                                            type="time"
+                                            className={dash.input}
+                                            value={newActivity.visitTime}
+                                            required
+                                            onChange={e => setNewActivity({ ...newActivity, visitTime: e.target.value })}
+                                            onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
+                                        />
+                                    </label>
+                                </div>
+                                <label className={dash.field}>
+                                    <span className={dash.label}>Address</span>
+                                    <input
+                                        type="text"
+                                        className={dash.input}
+                                        placeholder="Precise address required"
+                                        value={newActivity.address}
+                                        required
+                                        onChange={e => setNewActivity({ ...newActivity, address: e.target.value })}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleAddActivity(); }}
+                                    />
+                                </label>
+                                <button
+                                    type="button"
+                                    className={dash.submit}
+                                    onClick={handleAddActivity}
+                                    disabled={!activityValid}
+                                >
+                                    <span>Add activity</span>
+                                    <span className={dash.arrow} aria-hidden="true">→</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
                     {/* VOTE ON A RESTAURANT SECTION */}
-                    <div style={{ flex: 1, minWidth: '280px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
-                        <h3 style={{ marginTop: 0, color: '#e74c3c' }}>Vote on a Restaurant</h3>
-                        {!hasVoted && (
-                            <p style={{ fontSize: '13px', color: '#e67e22', marginBottom: '10px' }}>
-                                Cast your vote to see the results!
-                            </p>
-                        )}
-
-                        {votedLocations.length === 0 ? (
-                            <p style={{ color: '#7f8c8d' }}>No locations suggested yet. Add one below!</p>
-                        ) : (
-                            <ul style={{ listStyleType: 'none', padding: 0 }}>
-                                {votedLocations.map(loc => (
-                                    <li key={loc.id} style={{ padding: '10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <span style={{ fontWeight: 'bold' }}>{loc.name}</span>
-                                            {hasVoted && (
-                                                <span style={{ marginLeft: '10px', fontSize: '13px', color: '#7f8c8d' }}>
-                                                    {loc.voteCount} vote{loc.voteCount !== 1 ? 's' : ''}
-                                                </span>
-                                            )}
-
-                                            {loc.address && (
-                                                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
-                                                    📍 {loc.address}
-                                                </p>
-                                            )}
-                                            {loc.visitTime && (
-                                                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7f8c8d' }}>
-                                                    🕒 {loc.visitTime}
-                                                </p>
-                                            )}
-                                        </div>
-                                        {!hasVoted && (
-                                            <button
-                                                onClick={() => handleVote(loc.id)}
-                                                style={{ padding: '5px 10px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                Vote
-                                            </button>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-
-                        {/* Voting suggest a spot */}
-                        <div style={{ marginTop: '15px' }}>
-                            <input
-                                type="text"
-                                placeholder="Spot name"
-                                value={newLocation}
-                                required
-                                onChange={e => setNewLocation(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Precise address required"
-                                value={newLocationAddress}
-                                required
-                                onChange={e => setNewLocationAddress(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <input
-                                type="time"
-                                value={newLocationVisitTime}
-                                required
-                                onChange={e => setNewLocationVisitTime(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
-                                style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                            />
-                            <button
-                                onClick={handleAddLocation}
-                                disabled={!spotValid}
-                                style={{ width: '100%', padding: '10px', backgroundColor: spotValid ? '#e74c3c' : '#95a5a6', color: 'white', border: 'none', borderRadius: '4px', cursor: spotValid ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: spotValid ? 1 : 0.6 }}
-                            >
-                                Suggest a Spot
-                            </button>
+                    <section className={dash.section}>
+                        <div className={dash.rail}>
+                            <span className={dash.caption}>Vote</span>
+                            {selectedDay && <span className={dash.caption}>{selectedDay.date}</span>}
                         </div>
-                    </div>
-                </div>
+
+                        <div>
+                            <h2 className={dash.sectionTitle}>Vote on a restaurant</h2>
+                            {!hasVoted && (
+                                <p className={styles.hint}>Cast your vote to see the results!</p>
+                            )}
+
+                            <p className={styles.subhead}>Options</p>
+                            {votedLocations.length === 0 ? (
+                                <p className={styles.note}>No locations suggested yet. Add one below!</p>
+                            ) : (
+                                <ul className={styles.rows}>
+                                    {votedLocations.map(loc => (
+                                        <li key={loc.id} className={styles.item}>
+                                            <div>
+                                                <span className={styles.itemName}>{loc.name}</span>
+                                                {(loc.visitTime || loc.address) && (
+                                                    <span className={styles.itemMeta}>
+                                                        {[loc.visitTime, loc.address].filter(Boolean).join(' · ')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className={styles.itemSide}>
+                                                {hasVoted && (
+                                                    <span className={styles.itemCount}>
+                                                        {loc.voteCount} vote{loc.voteCount !== 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                                {!hasVoted && (
+                                                    <button
+                                                        type="button"
+                                                        className={dash.textButton}
+                                                        onClick={() => handleVote(loc.id)}
+                                                    >
+                                                        Vote
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            {/* Voting suggest a spot */}
+                            <p className={styles.subhead}>Suggest a spot</p>
+                            <div className={styles.formStack}>
+                                <label className={dash.field}>
+                                    <span className={dash.label}>Name</span>
+                                    <input
+                                        type="text"
+                                        className={dash.input}
+                                        placeholder="Spot name"
+                                        value={newLocation}
+                                        required
+                                        onChange={e => setNewLocation(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
+                                    />
+                                </label>
+                                <label className={dash.field}>
+                                    <span className={dash.label}>Address</span>
+                                    <input
+                                        type="text"
+                                        className={dash.input}
+                                        placeholder="Precise address required"
+                                        value={newLocationAddress}
+                                        required
+                                        onChange={e => setNewLocationAddress(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
+                                    />
+                                </label>
+                                <label className={dash.field}>
+                                    <span className={dash.label}>Time</span>
+                                    <input
+                                        type="time"
+                                        className={dash.input}
+                                        value={newLocationVisitTime}
+                                        required
+                                        onChange={e => setNewLocationVisitTime(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleAddLocation(); }}
+                                    />
+                                </label>
+                                <button
+                                    type="button"
+                                    className={dash.submit}
+                                    onClick={handleAddLocation}
+                                    disabled={!spotValid}
+                                >
+                                    <span>Suggest a spot</span>
+                                    <span className={dash.arrow} aria-hidden="true">→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </>
             )}
         </div>
     );

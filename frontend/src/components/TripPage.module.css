@@ -1,0 +1,426 @@
+/*
+ * TripPage — layout for the trip details screen.
+ *
+ * Builds on the primitives in Dashboard.module.css (rail sections, captions,
+ * underline inputs, text buttons). Custom properties (--rule, --ink, --muted,
+ * --mark, --danger) are inherited from the .shell wrapper. No boxed cards,
+ * no gradients, no glows.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+}
+
+.page > header {
+  margin-bottom: var(--space-massive);
+}
+
+/* Hairline between consecutive sections; empty sections simply drop out. */
+.page > section + section {
+  margin-top: var(--space-massive);
+  padding-top: var(--space-massive);
+  border-top: 1px solid var(--border-clean);
+}
+
+/* ------------------------------------------------------------------ header */
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'back back'
+    'title share'
+    'destination share';
+  align-items: end;
+  column-gap: 1.5rem;
+  row-gap: 0.9rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.back {
+  grid-area: back;
+  justify-self: start;
+  margin-bottom: 1.75rem;
+}
+
+.title {
+  grid-area: title;
+  margin: 0;
+  font-family: var(--heading);
+  font-size: clamp(2.5rem, 8vw, 4.25rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.destination {
+  grid-area: destination;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.share {
+  grid-area: share;
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+  padding-bottom: 0.2rem;
+}
+
+.shareStatus {
+  max-width: 14rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.7;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------- shared bits */
+
+.note {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.noteTop {
+  margin-top: 1.5rem;
+}
+
+.noteError {
+  color: var(--danger);
+  opacity: 1;
+}
+
+/* Flat hairline marker — not a tinted rounded alert card. */
+.hint {
+  margin: 1.5rem 0 0;
+  padding: 0.6rem 0 0.6rem 0.9rem;
+  border-left: 2px solid var(--mark);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.subhead {
+  margin: 2.5rem 0 0.9rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.rowsFirst {
+  margin-top: 2rem;
+}
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inlineForm {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Lines the text button up with the input's underline. */
+.inlineAction {
+  flex-shrink: 0;
+  padding-bottom: 0.75rem;
+}
+
+.suggest {
+  margin-top: 1rem;
+}
+
+.dayOptions,
+.modeOptions {
+  margin-top: 2rem;
+}
+
+.mapFrame {
+  width: 100%;
+  height: 280px;
+  margin-top: 2rem;
+  overflow: hidden;
+  background: var(--code-bg);
+}
+
+.mapFrame iframe {
+  display: block;
+}
+
+/* Minimal line underscore that draws in on hover. */
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-decoration: none;
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: calc(100% - 1.6rem);
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.link:hover::after,
+.link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.link:focus-visible {
+  outline: none;
+  color: var(--mark);
+}
+
+.linkArrow {
+  font-family: var(--mono);
+  transition: all 0.2s var(--ease-out-expo);
+}
+
+.link:hover .linkArrow,
+.link:focus-visible .linkArrow {
+  transform: translateX(4px);
+}
+
+/* ----------------------------------------------------------------- members */
+
+.memberRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.memberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.memberEmail {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.status {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.statusApproved {
+  color: var(--ink);
+  opacity: 0.7;
+}
+
+.statusPending {
+  color: var(--mark);
+}
+
+.statusRejected {
+  color: var(--danger);
+}
+
+.memberActions {
+  display: flex;
+  gap: 1.25rem;
+}
+
+/* ----------------------------------------------------------------- weather */
+
+.weatherRow {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.weatherDate {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.weatherLabel {
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+
+.weatherTemp {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.weatherMin {
+  font-weight: 200;
+  color: var(--muted);
+}
+
+.weatherNone {
+  grid-column: 2 / -1;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+/* -------------------------------------------------------------------- chat */
+
+.chatLog {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.bubbleUser {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 0.55rem 0.8rem;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.bubbleAi {
+  align-self: flex-start;
+  max-width: 92%;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--rule);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+/* ------------------------------------------------------- activities & votes */
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 1.25rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.itemName {
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.itemTag {
+  margin-left: 0.6rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.itemMeta {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.itemSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.itemCount {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.6;
+  white-space: nowrap;
+}

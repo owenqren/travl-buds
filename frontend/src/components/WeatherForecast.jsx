@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import dash from './Dashboard.module.css';
+import styles from './TripPage.module.css';
 
 /**
  * WeatherForecast shows forecast data for the trip destination and dates.
@@ -77,105 +79,78 @@ export default function WeatherForecast({ destination, tripDays, units }) {
         };
     }, [destination]);
 
-    if (loading) return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>Loading weather...</p>;
-    if (error) return <p style={{ color: '#e74c3c', fontSize: '14px' }}>{error}</p>;
-    if (!weather) {
-        return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>No weather data available.</p>;
-    }
+    let body;
 
-    // Filter weather to only show days that match trip days
-    const relevantDays = tripDays
-        .map(day => {
-            const index = weather.time.indexOf(day.date);
+    if (loading) {
+        body = <p className={`${styles.note} ${styles.noteTop}`}>Loading weather...</p>;
+    } else if (error) {
+        body = <p className={`${styles.note} ${styles.noteTop} ${styles.noteError}`}>{error}</p>;
+    } else if (!weather) {
+        body = <p className={`${styles.note} ${styles.noteTop}`}>No weather data available.</p>;
+    } else {
+        // Filter weather to only show days that match trip days
+        const relevantDays = tripDays
+            .map(day => {
+                const index = weather.time.indexOf(day.date);
 
-            if (index === -1) {
-                return { date: day.date, noData: true };
-            }
+                if (index === -1) {
+                    return { date: day.date, noData: true };
+                }
 
-            return {
-                date: day.date,
-                max: Math.round(weather.temperature_2m_max[index]),
-                min: Math.round(weather.temperature_2m_min[index]),
-                code: weather.weathercode[index],
-                noData: false
-            };
-        })
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+                return {
+                    date: day.date,
+                    max: Math.round(weather.temperature_2m_max[index]),
+                    min: Math.round(weather.temperature_2m_min[index]),
+                    code: weather.weathercode[index],
+                    noData: false
+                };
+            })
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    if (relevantDays.length === 0) {
-        return <p style={{ color: '#7f8c8d', fontSize: '14px' }}>No weather data for trip dates.</p>;
-    }
-
-    return (
-        <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ color: '#2c3e50', marginBottom: '10px' }}>🌤 Weather Forecast</h3>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        body = relevantDays.length === 0 ? (
+            <p className={`${styles.note} ${styles.noteTop}`}>No weather data for trip dates.</p>
+        ) : (
+            <ul className={`${styles.rows} ${styles.rowsFirst}`}>
                 {relevantDays.map(day => {
                     if (day.noData) {
                         return (
-                            <div
-                                key={day.date}
-                                style={{
-                                    backgroundColor: '#fff',
-                                    border: '1px solid #eee',
-                                    borderRadius: '8px',
-                                    padding: '12px 16px',
-                                    textAlign: 'center',
-                                    minWidth: '80px',
-                                }}
-                            >
-                                <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{day.date}</p>
-                                <div
-                                    style={{
-                                        flex: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        paddingTop: '-1px',
-                                    }}
-                                >
-                                    <p
-                                        style={{
-                                            fontSize: '12px',
-                                            color: '#7f8c8d',
-                                            margin: 0,
-                                            maxWidth: '80px',
-                                            lineHeight: '1.4',
-                                            whiteSpace: 'normal',
-                                        }}
-                                    >
-                                        No data.
-                                        Forecasts are limited
-                                        to 16 days ahead.
-                                    </p>
-                                </div>
-                            </div>
+                            <li key={day.date} className={styles.weatherRow}>
+                                <span className={styles.weatherDate}>{day.date}</span>
+                                <span className={styles.weatherNone}>
+                                    No data. Forecasts are limited to 16 days ahead.
+                                </span>
+                            </li>
                         );
                     }
 
                     const w = weatherDescriptions[day.code] || { label: 'Unknown', icon: '🌡️' };
                     return (
-                        <div
-                            key={day.date}
-                            style={{
-                                backgroundColor: '#fff',
-                                border: '1px solid #eee',
-                                borderRadius: '8px',
-                                padding: '12px 16px',
-                                textAlign: 'center',
-                                minWidth: '80px'
-                            }}
-                        >
-                            <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{day.date}</p>
-                            <p style={{ fontSize: '24px', margin: '0 0 4px' }}>{w.icon}</p>
-                            <p style={{ fontSize: '12px', color: '#7f8c8d', margin: '0 0 4px' }}>{w.label}</p>
-                            <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50', margin: 0 }}>
-                                {displayTemp(day.max)}° / {displayTemp(day.min)}°
-                            </p>
-                        </div>
+                        <li key={day.date} className={styles.weatherRow}>
+                            <span className={styles.weatherDate}>{day.date}</span>
+                            <span className={styles.weatherLabel}>
+                                <span aria-hidden="true">{w.icon}</span> {w.label}
+                            </span>
+                            <span className={styles.weatherTemp}>
+                                {displayTemp(day.max)}°
+                                <span className={styles.weatherMin}> / {displayTemp(day.min)}°</span>
+                            </span>
+                        </li>
                     );
                 })}
+            </ul>
+        );
+    }
+
+    return (
+        <section className={dash.section}>
+            <div className={dash.rail}>
+                <span className={dash.caption}>Forecast</span>
             </div>
-        </div>
+
+            <div>
+                <h2 className={dash.sectionTitle}>Weather</h2>
+                {body}
+            </div>
+        </section>
     );
 }
