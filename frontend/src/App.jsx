@@ -6,6 +6,14 @@ import TripDetails from './components/TripDetails';
 import './App.css';
 import AuthLanding from './components/AuthLanding';
 import { authFetch } from './utils/authFetch';
+import styles from './components/Dashboard.module.css';
+
+/** Settings shown in the settings panel; `key` is the field on the `units` state. */
+const SETTINGS = [
+    { key: 'temperature', label: 'Temperature', options: [{ value: 'C', label: '°C' }, { value: 'F', label: '°F' }] },
+    { key: 'distance', label: 'Distance', options: [{ value: 'km', label: 'km' }, { value: 'mi', label: 'mi' }] },
+    { key: 'mapProvider', label: 'Map', options: [{ value: 'google', label: 'Google Maps' }, { value: 'baidu', label: 'Baidu Maps' }] },
+];
 
 /**
  * App coordinates the main TravlBuds dashboard.
@@ -71,119 +79,67 @@ function App() {
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-            <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <h1 style={{ color: '#2c3e50', margin: '0 0 8px' }}>TravlBuds</h1>
-                <p style={{ color: '#7f8c8d', margin: '0 0 12px' }}>
-                    Collaborative vacation planning
-                </p>
+        <div className={styles.shell}>
+            <div>
+                <header className={styles.masthead}>
+                    <p className={styles.eyebrow}>Collaborative vacation planning</p>
+                    <h1 className={styles.wordmark}>
+                        Travl<span className={styles.wordmarkThin}>Buds</span>
+                    </h1>
 
-                <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    style={{
-                        padding: '8px 12px',
-                        backgroundColor: '#ffffff',
-                        color: '#2c3e50',
-                        border: '1px solid #b8c2cc',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
+                    <nav className={styles.actions} aria-label="Account">
+                        <button
+                            type="button"
+                            className={styles.textButton}
+                            aria-expanded={showSettings}
+                            onClick={() => setShowSettings(!showSettings)}
+                        >
+                            Settings
+                        </button>
+                        <button
+                            type="button"
+                            className={`${styles.textButton} ${styles.danger}`}
+                            onClick={handleLogout}
+                        >
+                            Log out
+                        </button>
+                    </nav>
+                </header>
 
-                    }}
-
-
-                >
-                    ⚙️ Settings
-                </button>
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        marginLeft: '8px',
-                        padding: '8px 12px',
-                        backgroundColor: '#fff',
-                        color: '#e74c3c',
-                        border: '1px solid #e74c3c',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                    }}
-                >
-                    Log Out
-                </button>
-            </header>
-            <p style={{ color: '#7f8c8d', fontSize: '13px' }}>
-                Report a bug or request a feature: <a href="mailto:support@travlbuds.com">support@travlbuds.com</a>
-            </p>
-
-            {/* SETTINGS PANEL */}
-            {showSettings && (
-                <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-                    <h3 style={{ marginTop: 0, color: '#2c3e50' }}>Settings</h3>
-
-                    <div style={{ marginBottom: '15px' }}>
-                        <p style={{ fontWeight: 'bold', color: '#2c3e50', marginBottom: '8px' }}>Temperature</p>
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => setUnits({ ...units, temperature: 'C' })}
-                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.temperature === 'C' ? '#2c3e50' : '#fff', color: units.temperature === 'C' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
-                            >
-                                °C
-                            </button>
-                            <button
-                                onClick={() => setUnits({ ...units, temperature: 'F' })}
-                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.temperature === 'F' ? '#2c3e50' : '#fff', color: units.temperature === 'F' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
-                            >
-                                °F
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p style={{ fontWeight: 'bold', color: '#2c3e50', marginBottom: '8px' }}>Distance</p>
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => setUnits({ ...units, distance: 'km' })}
-                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.distance === 'km' ? '#2c3e50' : '#fff', color: units.distance === 'km' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
-                            >
-                                km
-                            </button>
-                            <button
-                                onClick={() => setUnits({ ...units, distance: 'mi' })}
-                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.distance === 'mi' ? '#2c3e50' : '#fff', color: units.distance === 'mi' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
-                            >
-                                mi
-                            </button>
-                        </div>
-                    </div>
-                    <div style={{ marginTop: '15px' }}>
-                        <p style={{ fontWeight: 'bold', color: '#2c3e50', marginBottom: '8px' }}>Map Provider</p>
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => setUnits({ ...units, mapProvider: 'google' })}
-                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.mapProvider !== 'baidu' ? '#2c3e50' : '#fff', color: units.mapProvider !== 'baidu' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
-                            >
-                                Google Maps
-                            </button>
-                            <button
-                                onClick={() => setUnits({ ...units, mapProvider: 'baidu' })}
-                                style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ccc', backgroundColor: units.mapProvider === 'baidu' ? '#2c3e50' : '#fff', color: units.mapProvider === 'baidu' ? '#fff' : '#2c3e50', cursor: 'pointer' }}
-                            >
-                                Baidu Maps
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                {/* SETTINGS PANEL */}
+                {showSettings && (
+                    <section className={styles.settings} aria-label="Settings">
+                        {SETTINGS.map(({ key, label, options }) => (
+                            <div key={key} className={styles.settingRow}>
+                                <span className={styles.caption}>{label}</span>
+                                <div className={styles.options}>
+                                    {options.map(option => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            className={styles.option}
+                                            aria-pressed={units[key] === option.value}
+                                            onClick={() => setUnits({ ...units, [key]: option.value })}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </section>
+                )}
+            </div>
 
             <Routes>
                 <Route
                     path="/"
                     element={
-                        <>
+                        <div className={styles.stack}>
                             <TripForm onTripAdded={handleTripAdded} />
-                            <hr style={{ margin: '40px 0', border: 'none', borderTop: '1px solid #eee' }} />
+                            <hr className={styles.divider} />
                             <TripList trips={trips} onViewDetails={handleViewTripDetails} />
-                        </>
+                        </div>
                     }
                 />
                 <Route
@@ -197,6 +153,11 @@ function App() {
                     }
                 />
             </Routes>
+
+            <footer className={styles.footer}>
+                <span className={styles.footerLabel}>Report a bug or request a feature</span>
+                <a className={styles.footerLink} href="mailto:support@travlbuds.com">support@travlbuds.com</a>
+            </footer>
         </div>
     );
 }

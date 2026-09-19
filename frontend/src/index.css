@@ -15,6 +15,12 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
+  /* Layout tokens for the editorial surfaces (dashboard). */
+  --border-clean: var(--border);
+  --space-massive: clamp(3rem, 8vh, 5rem);
+  --space-colossal: clamp(4.5rem, 12vh, 8rem);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
