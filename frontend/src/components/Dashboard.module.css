@@ -446,6 +446,13 @@
   color: var(--muted);
 }
 
+.tripMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
 .tripDates {
   font-family: var(--mono);
   font-size: 10px;
@@ -456,6 +463,23 @@
   text-transform: uppercase;
   color: var(--muted);
   opacity: 0.65;
+}
+
+/* Owner is the default, muted case; a shared trip is the exception worth
+   calling out, so it gets the accent colour instead of an extra icon. */
+.tripBadge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.tripBadgeShared {
+  color: var(--mark);
+  opacity: 1;
 }
 
 .empty {
