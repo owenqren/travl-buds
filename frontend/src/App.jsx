@@ -15,6 +15,12 @@ const SETTINGS = [
     { key: 'mapProvider', label: 'Map', options: [{ value: 'google', label: 'Google Maps' }, { value: 'baidu', label: 'Baidu Maps' }] },
 ];
 
+const THEME_OPTIONS = [
+    { value: 'system', label: 'System' },
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+];
+
 /**
  * App coordinates the main TravlBuds dashboard.
  *
@@ -25,11 +31,21 @@ function App() {
     const [trips, setTrips] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
     const [units, setUnits] = useState({ temperature: 'C', distance: 'km', mapProvider: 'google' });
+    const [theme, setTheme] = useState(() => localStorage.getItem('travlbudsTheme') || 'system');
 
     const [currentUser, setCurrentUser] = useState(() => {
         const savedUser = localStorage.getItem('travlbudsUser');
         return savedUser ? JSON.parse(savedUser) : null;
     });
+
+    useEffect(() => {
+        if (theme === 'system') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        localStorage.setItem('travlbudsTheme', theme);
+    }, [theme]);
 
     useEffect(() => {
         if (!currentUser) return;
@@ -113,6 +129,22 @@ function App() {
                 {/* SETTINGS PANEL */}
                 {showSettings && (
                     <section className={styles.settings} aria-label="Settings">
+                        <div className={styles.settingRow}>
+                            <span className={styles.caption}>Theme</span>
+                            <div className={styles.options}>
+                                {THEME_OPTIONS.map(option => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        className={styles.option}
+                                        aria-pressed={theme === option.value}
+                                        onClick={() => setTheme(option.value)}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         {SETTINGS.map(({ key, label, options }) => (
                             <div key={key} className={styles.settingRow}>
                                 <span className={styles.caption}>{label}</span>
