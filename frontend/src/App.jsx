@@ -149,6 +149,7 @@ function App() {
                             trips={trips}
                             onBack={handleBackToTrips}
                             units={units}
+                            currentUserId={currentUser.id}
                         />
                     }
                 />
@@ -161,7 +162,7 @@ function App() {
         </div>
     );
 }
-function TripDetailsRoute({ trips, onBack, units }) {
+function TripDetailsRoute({ trips, onBack, units, currentUserId }) {
     const { tripId } = useParams();
     const numericTripId = Number(tripId);
 
@@ -171,6 +172,7 @@ function TripDetailsRoute({ trips, onBack, units }) {
             trip={trips.find(t => t.id === numericTripId)}
             onBack={onBack}
             units={units}
+            currentUserId={currentUserId}
         />
     );
 }

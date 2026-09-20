@@ -6,19 +6,44 @@ import { authFetch } from '../utils/authFetch';
 import dash from './Dashboard.module.css';
 import styles from './TripPage.module.css';
 
+/** Copy shown on the access-request screen, keyed by GET /members/me status. */
+const ACCESS_COPY = {
+    NOT_FOUND: {
+        title: 'Trip not found',
+        body: "This trip doesn't exist, or the link is wrong.",
+    },
+    NONE: {
+        title: 'Request access',
+        body: "You'll need the trip owner's approval to view this trip.",
+    },
+    PENDING: {
+        title: 'Request sent',
+        body: 'Waiting for the trip owner to approve your access.',
+    },
+    REJECTED: {
+        title: 'Access denied',
+        body: "The trip owner didn't approve your request to join this trip.",
+    },
+};
+
 /**
  * TripDetails displays and manages a selected trip itinerary.
  *
  * It loads trip days, destination suggestions, votes, activities, weather, and
  * user actions for adding days, suggesting spots, voting, and joining activities.
+ * Visitors who are not the owner or an approved member see a request-access
+ * screen instead, since every other trip endpoint rejects them.
  */
 
-export default function TripDetails({ tripId, trip, onBack, units }) {
+export default function TripDetails({ tripId, trip, onBack, units, currentUserId }) {
     const [days, setDays] = useState([]);
     const [selectedDayId, setSelectedDayId] = useState(null);
     const [votedLocations, setVotedLocations] = useState([]);
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
+    const [dayDataError, setDayDataError] = useState('');
+    const [actionError, setActionError] = useState('');
     const [newLocation, setNewLocation] = useState('');
     const [newActivity, setNewActivity] = useState({
         name: '',
@@ -39,12 +64,62 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const [memberStatus, setMemberStatus] = useState('');
     const [shareStatus, setShareStatus] = useState('');
 
-    
+    // Own access status for the current tripId, tagged with the tripId it was
+    // fetched for so a stale response for a previous trip is ignored. Every
+    // trip-scoped endpoint 403s anyone but the owner or an approved member,
+    // so gate both the fetches and the view on this.
+    const [accessResult, setAccessResult] = useState({ tripId: null, status: null });
+    const [requestPending, setRequestPending] = useState(false);
+    const [requestError, setRequestError] = useState('');
+
+    const access = accessResult.tripId === tripId ? accessResult.status : null;
+    const hasAccess = access === 'OWNER' || access === 'APPROVED';
+    const isOwner = Boolean(trip?.user?.id) && trip.user.id === currentUserId;
+
+    // Fetch the caller's own access status for this trip
+    useEffect(() => {
+        let cancelled = false;
+
+        authFetch(`/api/trips/${tripId}/members/me`)
+            .then(res => {
+                if (res.status === 404) return { status: 'NOT_FOUND' };
+                if (!res.ok) throw new Error('Failed to load access status.');
+                return res.json();
+            })
+            .then(data => { if (!cancelled) setAccessResult({ tripId, status: data.status }); })
+            .catch(err => {
+                console.error('Failed to load access status:', err);
+                if (!cancelled) setAccessResult({ tripId, status: 'NONE' });
+            });
+
+        return () => { cancelled = true; };
+    }, [tripId]);
+
+    const handleRequestAccess = async () => {
+        setRequestPending(true);
+        setRequestError('');
+        try {
+            const res = await authFetch(`/api/trips/${tripId}/members/request`, { method: 'POST' });
+            if (!res.ok) throw new Error('Failed to request access.');
+            const data = await res.json();
+            setAccessResult({ tripId, status: data.status });
+        } catch (err) {
+            console.error(err);
+            setRequestError('Could not request access. Try again.');
+        } finally {
+            setRequestPending(false);
+        }
+    };
 
     // Fetch all days for the trip
     useEffect(() => {
+        if (!hasAccess) return;
+
         authFetch(`/api/trips/${tripId}/days`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load days.');
+                return res.json();
+            })
             .then(data => {
                 setDays(data);
                 if (data.length > 0) setSelectedDayId(data[0].id);
@@ -52,36 +127,54 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             })
             .catch(err => {
                 console.error("Failed to load days:", err);
+                setLoadError('Could not load this trip. Try refreshing the page.');
                 setLoading(false);
             });
-    }, [tripId]);
+    }, [tripId, hasAccess]);
 
     // Fetch activities and voted locations when selected day changes
     useEffect(() => {
-        if (!selectedDayId) return;
+        if (!selectedDayId || !hasAccess) return;
+
+        let cancelled = false;
 
         const fetchLocations = authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`)
-            .then(res => res.json());
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load destinations.');
+                return res.json();
+            });
 
         const fetchActivities = authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`)
-            .then(res => res.json());
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load activities.');
+                return res.json();
+            });
 
         Promise.all([fetchLocations, fetchActivities])
             .then(([locData, actData]) => {
+                if (cancelled) return;
                 setVotedLocations(locData);
                 setHasVoted(locData.some(d => d.voteCount !== null));
                 setActivities(actData);
+                setDayDataError('');
             })
-            .catch(err => console.error("Failed to load day data:", err));
-    }, [selectedDayId, tripId]);
+            .catch(err => {
+                console.error("Failed to load day data:", err);
+                if (!cancelled) setDayDataError('Could not load activities or votes for this day.');
+            });
+
+        return () => { cancelled = true; };
+    }, [selectedDayId, tripId, hasAccess]);
 
     // Fetch existing members on load
     useEffect(() => {
+        if (!hasAccess) return;
+
         authFetch(`/api/trips/${tripId}/members`)
             .then(res => res.json())
             .then(data => setMembers(data))
             .catch(err => console.error('Failed to load members:', err));
-    }, [tripId]);
+    }, [tripId, hasAccess]);
 
     const handleAddMember = async () => {
         const email = newMemberEmail.trim().toLowerCase();
@@ -108,10 +201,17 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     };
 
     const handleRemoveMember = async (email) => {
-        await authFetch(`/api/trips/${tripId}/members?email=${encodeURIComponent(email)}`, {
-            method: 'DELETE'
-        });
-        setMembers(prev => prev.filter(m => m.email !== email));
+        try {
+            const res = await authFetch(`/api/trips/${tripId}/members?email=${encodeURIComponent(email)}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) throw new Error('Failed to remove member.');
+            setMembers(prev => prev.filter(m => m.email !== email));
+        } catch (err) {
+            console.error(err);
+            setMemberStatus('Could not remove that member.');
+            setTimeout(() => setMemberStatus(''), 3000);
+        }
     };
 
     const handleApproveMember = async (memberId) => {
@@ -145,27 +245,43 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
     const handleAddDay = () => {
         if (!newDayDate) return;
 
+        setActionError('');
         authFetch(`/api/trips/${tripId}/days`, {
             method: 'POST',
             body: JSON.stringify({ date: newDayDate })
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to add day.');
+                return res.json();
+            })
             .then(data => {
                 setDays(prev => [...prev, data]);
                 setSelectedDayId(data.id);
                 setNewDayDate('');
+            })
+            .catch(err => {
+                console.error(err);
+                setActionError('Could not add that day.');
             });
     };
 
     const handleVote = (locationId) => {
+        setActionError('');
         authFetch(`/api/trips/${tripId}/days/${selectedDayId}/vote?votedLocationId=${locationId}`, {
             method: 'POST'
         })
-            .then(() => authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`))
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to cast vote.');
+                return authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`);
+            })
             .then(res => res.json())
             .then(data => {
                 setVotedLocations(data);
                 setHasVoted(true);
+            })
+            .catch(err => {
+                console.error(err);
+                setActionError('Could not cast that vote.');
             });
     };
 
@@ -174,6 +290,7 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             return;
         }
 
+        setActionError('');
         authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`, {
             method: 'POST',
             body: JSON.stringify({
@@ -182,12 +299,19 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                 visitTime: newLocationVisitTime
             })
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to add location.');
+                return res.json();
+            })
             .then(data => {
                 setVotedLocations(prev => [...prev, data]);
                 setNewLocation('');
                 setNewLocationAddress('');
                 setNewLocationVisitTime('');
+            })
+            .catch(err => {
+                console.error(err);
+                setActionError('Could not suggest that spot.');
             });
     };
 
@@ -250,25 +374,41 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             return;
         }
 
+        setActionError('');
         authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`, {
             method: 'POST',
             body: JSON.stringify(newActivity)
         })
-            .then(() => authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`))
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to add activity.');
+                return authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`);
+            })
             .then(res => res.json())
             .then(data => {
                 setActivities(data);
                 setNewActivity({ name: '', category: '', address: '', visitTime: '' });
+            })
+            .catch(err => {
+                console.error(err);
+                setActionError('Could not add that activity.');
             });
     };
 
     const handleJoinActivity = (activityId) => {
+        setActionError('');
         authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities/${activityId}/join`, {
             method: 'POST'
         })
-            .then(() => authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`))
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to join activity.');
+                return authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`);
+            })
             .then(res => res.json())
-            .then(data => setActivities(data));
+            .then(data => setActivities(data))
+            .catch(err => {
+                console.error(err);
+                setActionError('Could not join that activity.');
+            });
     };
 
     const dayStops = [
@@ -291,6 +431,56 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
 
     const activityValid = newActivity.name.trim() && newActivity.address.trim() && newActivity.visitTime;
     const spotValid = newLocation.trim() && newLocationAddress.trim() && newLocationVisitTime;
+
+    if (access === null) return <p className={styles.note}>Loading...</p>;
+
+    // Every trip-scoped endpoint 403s anyone who isn't the owner or an
+    // approved member, so show a request-access screen instead of a page
+    // full of empty, failed sections.
+    if (!hasAccess) {
+        const copy = ACCESS_COPY[access] || ACCESS_COPY.NONE;
+
+        return (
+            <div className={styles.page}>
+                <header className={styles.header}>
+                    <button
+                        type="button"
+                        className={`${dash.textButton} ${styles.back}`}
+                        onClick={onBack}
+                    >
+                        ← Back to trips
+                    </button>
+                    <h2 className={styles.title}>{trip?.name || `Trip #${tripId}`}</h2>
+                </header>
+
+                <section className={dash.section}>
+                    <div className={dash.rail}>
+                        <span className={dash.caption}>Access</span>
+                    </div>
+
+                    <div>
+                        <h2 className={dash.sectionTitle}>{copy.title}</h2>
+                        <p className={styles.note}>{copy.body}</p>
+
+                        {access === 'NONE' && (
+                            <button
+                                type="button"
+                                className={`${dash.submit} ${styles.suggest}`}
+                                onClick={handleRequestAccess}
+                                disabled={requestPending}
+                            >
+                                <span>{requestPending ? 'Requesting…' : 'Request access'}</span>
+                                <span className={dash.arrow} aria-hidden="true">→</span>
+                            </button>
+                        )}
+                        {requestError && (
+                            <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{requestError}</p>
+                        )}
+                    </div>
+                </section>
+            </div>
+        );
+    }
 
     if (loading) return <p className={styles.note}>Loading...</p>;
 
@@ -327,6 +517,13 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                 </div>
             </header>
 
+            {loadError && (
+                <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{loadError}</p>
+            )}
+            {actionError && (
+                <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{actionError}</p>
+            )}
+
             {/* TRIP ACCESS */}
             <section className={dash.section}>
                 <div className={dash.rail}>
@@ -344,33 +541,35 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                                         <span className={styles.memberEmail}>{m.email}</span>
                                         <span className={`${styles.status} ${statusClass(m.status)}`}>{m.status}</span>
                                     </span>
-                                    <span className={styles.memberActions}>
-                                        {m.status === 'PENDING' && (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    className={dash.textButton}
-                                                    onClick={() => handleApproveMember(m.id)}
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={`${dash.textButton} ${dash.danger}`}
-                                                    onClick={() => handleRejectMember(m.id)}
-                                                >
-                                                    Reject
-                                                </button>
-                                            </>
-                                        )}
-                                        <button
-                                            type="button"
-                                            className={`${dash.textButton} ${dash.danger}`}
-                                            onClick={() => handleRemoveMember(m.email)}
-                                        >
-                                            Remove
-                                        </button>
-                                    </span>
+                                    {isOwner && (
+                                        <span className={styles.memberActions}>
+                                            {m.status === 'PENDING' && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        className={dash.textButton}
+                                                        onClick={() => handleApproveMember(m.id)}
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`${dash.textButton} ${dash.danger}`}
+                                                        onClick={() => handleRejectMember(m.id)}
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button
+                                                type="button"
+                                                className={`${dash.textButton} ${dash.danger}`}
+                                                onClick={() => handleRemoveMember(m.email)}
+                                            >
+                                                Remove
+                                            </button>
+                                        </span>
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -463,6 +662,13 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
                         <span className={dash.caption}>Next</span>
                     </div>
                     <p className={styles.note}>Add a day above to get started!</p>
+                </section>
+            ) : dayDataError ? (
+                <section className={dash.section}>
+                    <div className={dash.rail}>
+                        <span className={dash.caption}>Activities</span>
+                    </div>
+                    <p className={`${styles.note} ${styles.noteError}`}>{dayDataError}</p>
                 </section>
             ) : (
                 <>

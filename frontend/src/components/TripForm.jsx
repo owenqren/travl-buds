@@ -14,8 +14,13 @@ export default function TripForm({ onTripAdded }) {
         name: '', destination: '', startDate: '', endDate: ''
     });
 
+    const isValid = tripData.name.trim() && tripData.destination.trim() && tripData.startDate && tripData.endDate;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // The date fields also call this directly on Enter, bypassing the
+        // submit button's disabled state, so re-check validity here too.
+        if (!isValid) return;
 
         try {
             const response = await authFetch('/api/trips', {
@@ -31,7 +36,6 @@ export default function TripForm({ onTripAdded }) {
             console.error("Failed to save trip:", error);
         }
     };
-    const isValid = tripData.name.trim() && tripData.destination.trim() && tripData.startDate && tripData.endDate;
     return (
         <section className={styles.section}>
             <div className={styles.rail}>
