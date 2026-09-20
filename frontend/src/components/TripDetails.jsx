@@ -211,7 +211,9 @@ export default function TripDetails({ tripId, trip, onBack, units }) {
             });
 
             const data = await response.json();
-            const reply = data.choices?.[0]?.message?.content || 'No response returned.';
+            const reply = response.ok
+                ? data.choices?.[0]?.message?.content || 'No response returned.'
+                : data.error || 'The AI assistant is unavailable right now.';
 
             setAiMessages(prev => [...prev, { role: 'assistant', content: reply }]);
         } catch (error) {
