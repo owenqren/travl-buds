@@ -4,6 +4,7 @@ import TripForm from './components/TripForm';
 import TripList from './components/TripList';
 import TripDetails from './components/TripDetails';
 import AuthLanding from './components/AuthLanding';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import { authFetch } from './utils/authFetch';
 import styles from './components/Dashboard.module.css';
 
@@ -72,6 +73,10 @@ function App() {
         setTrips([]);
         navigate('/');
     };
+
+    if (window.location.pathname === '/reset-password') {
+        return <ResetPasswordPage onLogin={handleLogin} />;
+    }
 
     if (!currentUser) {
         return <AuthLanding onLogin={handleLogin} />;
