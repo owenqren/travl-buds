@@ -3,6 +3,8 @@ package com.travlbuds.api.models;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "users") // "user" is a reserved word in Postgres, so we use "users"
 
@@ -23,6 +25,12 @@ public class User {
 
     @JsonIgnore
     private String passwordHash;
+
+    @JsonIgnore
+    private String resetTokenHash;
+
+    @JsonIgnore
+    private Instant resetTokenExpiresAt;
 
     // Empty constructor required by JPA
     public User() {
@@ -63,5 +71,21 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public String getResetTokenHash() {
+        return resetTokenHash;
+    }
+
+    public void setResetTokenHash(String resetTokenHash) {
+        this.resetTokenHash = resetTokenHash;
+    }
+
+    public Instant getResetTokenExpiresAt() {
+        return resetTokenExpiresAt;
+    }
+
+    public void setResetTokenExpiresAt(Instant resetTokenExpiresAt) {
+        this.resetTokenExpiresAt = resetTokenExpiresAt;
     }
 }
