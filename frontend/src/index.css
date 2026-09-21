@@ -1,6 +1,6 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
+  --text: #6b4c7f;
+  --text-h: #3a1550;
   --bg: #fff;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
@@ -33,8 +33,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
+    --text: #b6a6c0;
+    --text-h: #f5edfb;
     --bg: #16171d;
     --border: #2e303a;
     --code-bg: #1f2028;
@@ -44,8 +44,8 @@
 
 /* Explicit choice from Settings overrides the OS preference in either direction. */
 :root[data-theme='dark'] {
-  --text: #9ca3af;
-  --text-h: #f3f4f6;
+  --text: #b6a6c0;
+  --text-h: #f5edfb;
   --bg: #16171d;
   --border: #2e303a;
   --code-bg: #1f2028;
