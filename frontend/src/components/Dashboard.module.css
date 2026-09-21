@@ -16,7 +16,7 @@
 
   box-sizing: border-box;
   width: 100%;
-  max-width: 600px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: var(--space-massive) 1.5rem;
   display: flex;
@@ -213,10 +213,40 @@
 
 /* ---------------------------------------------------------------- sections */
 
+/* New-trip form sits in a fixed-width left rail; the trip list fills the
+   remaining width. The divider becomes a vertical rule between them and
+   only reverts to a horizontal hairline once the columns collapse. */
 .stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-massive);
+  display: grid;
+  grid-template-columns: minmax(0, 470px) minmax(0, 1fr);
+  column-gap: 3rem;
+  align-items: start;
+}
+
+.stack > *:first-child {
+  --rail: 4.5rem;
+  padding-right: 2.5rem;
+  border-right: 1px solid var(--border-clean);
+}
+
+.stack > .divider {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .stack {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-massive);
+  }
+
+  .stack > *:first-child {
+    padding-right: 0;
+    border-right: none;
+  }
+
+  .stack > .divider {
+    display: block;
+  }
 }
 
 .divider {
