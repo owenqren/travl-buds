@@ -10,17 +10,52 @@
 .page {
   display: flex;
   flex-direction: column;
+  gap: var(--space-massive);
 }
 
-.page > header {
-  margin-bottom: var(--space-massive);
+/* --------------------------------------------------------------- layout */
+
+/* Sidebar carries day/group context and stays in view via position: sticky
+   while the wider main column — map, weather, the selected day's content —
+   scrolls past it. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  column-gap: 3rem;
+  align-items: start;
 }
 
-/* Hairline between consecutive sections; empty sections simply drop out. */
-.page > section + section {
+.sidebar {
+  position: sticky;
+  top: var(--space-massive);
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Hairline between consecutive sections within a column; empty sections
+   simply drop out. */
+.sidebar > section + section,
+.main > section + section {
   margin-top: var(--space-massive);
   padding-top: var(--space-massive);
   border-top: 1px solid var(--border-clean);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-massive);
+  }
+
+  .sidebar {
+    position: static;
+  }
 }
 
 /* ------------------------------------------------------------------ header */

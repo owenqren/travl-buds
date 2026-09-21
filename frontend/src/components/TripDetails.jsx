@@ -470,78 +470,83 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
                 <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{actionError}</p>
             )}
 
-            <TripMembers
-                members={members}
-                isOwner={isOwner}
-                newMemberEmail={newMemberEmail}
-                setNewMemberEmail={setNewMemberEmail}
-                memberStatus={memberStatus}
-                onAddMember={handleAddMember}
-                onApproveMember={handleApproveMember}
-                onRejectMember={handleRejectMember}
-                onRemoveMember={handleRemoveMember}
-            />
-
-            <TripMap destination={trip?.destination} mapProvider={units.mapProvider} />
-
-            <DaySelector
-                days={days}
-                selectedDayId={selectedDayId}
-                onSelectDay={setSelectedDayId}
-                newDayDate={newDayDate}
-                setNewDayDate={setNewDayDate}
-                onAddDay={handleAddDay}
-            />
-
-            <WeatherForecast destination={trip?.destination} tripDays={days} units={units} />
-            <VoteSpotMap locations={dayStops} destination={trip?.destination} />
-
-            {!selectedDayId ? (
-                <section className={dash.section}>
-                    <div className={dash.rail}>
-                        <span className={dash.caption}>Next</span>
-                    </div>
-                    <p className={styles.note}>Add a day above to get started!</p>
-                </section>
-            ) : dayDataError ? (
-                <section className={dash.section}>
-                    <div className={dash.rail}>
-                        <span className={dash.caption}>Activities</span>
-                    </div>
-                    <p className={`${styles.note} ${styles.noteError}`}>{dayDataError}</p>
-                </section>
-            ) : (
-                <>
-                    <ActivityPlanner
-                        selectedDay={selectedDay}
-                        aiMessages={aiMessages}
-                        aiInput={aiInput}
-                        setAiInput={setAiInput}
-                        aiLoading={aiLoading}
-                        onSendAiMessage={sendAiMessage}
-                        onSuggestIdeas={handleSuggestIdeas}
-                        activities={activities}
-                        newActivity={newActivity}
-                        setNewActivity={setNewActivity}
-                        onAddActivity={handleAddActivity}
-                        onJoinActivity={handleJoinActivity}
+            <div className={styles.layout}>
+                <div className={styles.sidebar}>
+                    <DaySelector
+                        days={days}
+                        selectedDayId={selectedDayId}
+                        onSelectDay={setSelectedDayId}
+                        newDayDate={newDayDate}
+                        setNewDayDate={setNewDayDate}
+                        onAddDay={handleAddDay}
                     />
 
-                    <RestaurantVote
-                        selectedDay={selectedDay}
-                        hasVoted={hasVoted}
-                        votedLocations={votedLocations}
-                        onVote={handleVote}
-                        newLocation={newLocation}
-                        setNewLocation={setNewLocation}
-                        newLocationAddress={newLocationAddress}
-                        setNewLocationAddress={setNewLocationAddress}
-                        newLocationVisitTime={newLocationVisitTime}
-                        setNewLocationVisitTime={setNewLocationVisitTime}
-                        onAddLocation={handleAddLocation}
+                    <TripMembers
+                        members={members}
+                        isOwner={isOwner}
+                        newMemberEmail={newMemberEmail}
+                        setNewMemberEmail={setNewMemberEmail}
+                        memberStatus={memberStatus}
+                        onAddMember={handleAddMember}
+                        onApproveMember={handleApproveMember}
+                        onRejectMember={handleRejectMember}
+                        onRemoveMember={handleRemoveMember}
                     />
-                </>
-            )}
+                </div>
+
+                <div className={styles.main}>
+                    <TripMap destination={trip?.destination} mapProvider={units.mapProvider} />
+                    <WeatherForecast destination={trip?.destination} tripDays={days} units={units} />
+                    <VoteSpotMap locations={dayStops} destination={trip?.destination} />
+
+                    {!selectedDayId ? (
+                        <section className={dash.section}>
+                            <div className={dash.rail}>
+                                <span className={dash.caption}>Next</span>
+                            </div>
+                            <p className={styles.note}>Add a day above to get started!</p>
+                        </section>
+                    ) : dayDataError ? (
+                        <section className={dash.section}>
+                            <div className={dash.rail}>
+                                <span className={dash.caption}>Activities</span>
+                            </div>
+                            <p className={`${styles.note} ${styles.noteError}`}>{dayDataError}</p>
+                        </section>
+                    ) : (
+                        <>
+                            <ActivityPlanner
+                                selectedDay={selectedDay}
+                                aiMessages={aiMessages}
+                                aiInput={aiInput}
+                                setAiInput={setAiInput}
+                                aiLoading={aiLoading}
+                                onSendAiMessage={sendAiMessage}
+                                onSuggestIdeas={handleSuggestIdeas}
+                                activities={activities}
+                                newActivity={newActivity}
+                                setNewActivity={setNewActivity}
+                                onAddActivity={handleAddActivity}
+                                onJoinActivity={handleJoinActivity}
+                            />
+
+                            <RestaurantVote
+                                selectedDay={selectedDay}
+                                hasVoted={hasVoted}
+                                votedLocations={votedLocations}
+                                onVote={handleVote}
+                                newLocation={newLocation}
+                                setNewLocation={setNewLocation}
+                                newLocationAddress={newLocationAddress}
+                                setNewLocationAddress={setNewLocationAddress}
+                                newLocationVisitTime={newLocationVisitTime}
+                                setNewLocationVisitTime={setNewLocationVisitTime}
+                                onAddLocation={handleAddLocation}
+                            />
+                        </>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
