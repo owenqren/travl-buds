@@ -14,7 +14,7 @@
   /* Bleeds past the shared shell's 1.5rem side padding, then reclaims most
      of it back — trip details wants a narrower margin than the trip list. */
   margin: 0 -1.5rem;
-  padding: 0 0.5rem;
+  padding: 0;
 }
 
 /* --------------------------------------------------------------- layout */
