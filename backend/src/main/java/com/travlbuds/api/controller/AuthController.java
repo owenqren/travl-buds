@@ -87,7 +87,7 @@ public class AuthController {
         User user = userRepository.findByEmail(request.email()).orElse(null);
 
         if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            return ResponseEntity.status(401).body("Invalid email or password.");
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid email or password."));
         }
 
         String token = jwtService.createToken(user.getEmail());
