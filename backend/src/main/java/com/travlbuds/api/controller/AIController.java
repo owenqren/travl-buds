@@ -53,12 +53,14 @@ public class AIController {
         if (request.message() == null || request.message().isBlank()) {
             return error(400, "Message is required.");
         }
+        // Length caps bound the prompt sent to Groq (cost/latency), not just input validation.
         if (request.message().length() > MAX_MESSAGE_LENGTH
                 || isTooLong(request.destination())
                 || isTooLong(request.date())) {
             return error(400, "Message is too long.");
         }
 
+        // Principal is the User entity itself (set by JwtAuthenticationFilter), not a request param.
         User user = (User) auth.getPrincipal();
         if (!rateLimiter.tryAcquire(user.getId())) {
             return error(429, "Too many AI requests. Please wait a few minutes and try again.");
@@ -99,6 +101,7 @@ public class AIController {
                 return error(502, "The AI assistant is unavailable right now.");
             }
 
+            // Groq's raw JSON response is passed straight through, unparsed, to the client.
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(groqResponse.body());
