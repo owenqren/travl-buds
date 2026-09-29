@@ -33,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
 
+        // No/malformed header: proceed unauthenticated and let SecurityConfig reject non-/api/auth/** routes.
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -45,6 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findByEmail(email).orElse(null);
 
             if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // The User entity itself is the principal, so controllers cast Authentication.getPrincipal()
+                // to User instead of taking an id from the request.
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null,
                         List.of());
                 authentication.setDetails(user.getEmail());
@@ -52,6 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ignored) {
+            // Invalid/expired token: clear rather than throw, so the request still falls through
+            // to SecurityConfig's normal unauthenticated handling below.
             SecurityContextHolder.clearContext();
         }
 
