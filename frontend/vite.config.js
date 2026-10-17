@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 // Used by `pnpm dev`/`build` (plugins) and by vitest (the `test` block).
 export default defineConfig({
+  // How: the React plugin compiles JSX and enables fast refresh in dev; the `test` block is read by vitest, which reuses
+  // this config file.
   plugins: [react()],
   test: {
     // Tests import describe/it/expect from 'vitest' explicitly rather than

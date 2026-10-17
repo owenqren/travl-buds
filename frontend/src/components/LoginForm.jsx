@@ -10,6 +10,8 @@ import styles from './AuthLanding.module.css';
 export default function LoginForm({ onLogin }) {
     // UI state: current mode (login | register | forgot), the typed field values, an error message and a submit-in-progress flag.
     const [mode, setMode] = useState('login');
+    // How: one object holds every field; each input updates it with a copy like {...formData, email: value}, because
+    // React state must be replaced, not mutated.
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -22,12 +24,16 @@ export default function LoginForm({ onLogin }) {
     const [forgotSent, setForgotSent] = useState(false);
 
     // Unique id prefix so label/input pairs stay linked; isRegister/isForgot are derived from mode.
+    // How: useId returns a stable unique string per component instance; each label's htmlFor and input id append a
+    // suffix to it so they stay linked.
     const fieldId = useId();
     const isRegister = mode === 'register';
     const isForgot = mode === 'forgot';
 
     // Submits login or register to the backend; this uses fetch directly because there is no token yet (unlike authFetch).
     const handleSubmit = async (e) => {
+        // How: stops the browser's default form submission, which would reload the page, so the fetch call can run
+        // instead.
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -37,6 +43,8 @@ export default function LoginForm({ onLogin }) {
 
         try {
             // POST the form data as JSON to VITE_API_URL + endpoint.
+            // How: await pauses this function until the response arrives while the UI stays responsive; JSON.stringify
+            // turns the form state into the request body.
             const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -44,10 +52,13 @@ export default function LoginForm({ onLogin }) {
             });
 
             // Response is a message string/object on failure or an AuthResponse (token + user) on success.
+            // How: the body is parsed before the status check because failures also carry a message, either a plain
+            // string (register) or an object with `message` (login).
             const data = await response.json();
 
             // Failure: surface the backend message (string body or {message}) through the catch below.
             if (!response.ok) {
+                // How: throwing jumps to the catch block, so success and failure share one error display path.
                 throw new Error(typeof data === 'string' ? data : data.message || 'Authentication failed.');
             }
 
@@ -57,6 +68,7 @@ export default function LoginForm({ onLogin }) {
         } catch (err) {
             setError(err.message);
         } finally {
+            // How: finally runs whether the request succeeded or threw, so the button is always enabled again.
             setLoading(false);
         }
     };
@@ -82,6 +94,7 @@ export default function LoginForm({ onLogin }) {
             }
 
             // Show the generic confirmation message.
+            // How: this flag makes the JSX swap the form for the confirmation text.
             setForgotSent(true);
         } catch (err) {
             setError(err.message);
@@ -98,6 +111,8 @@ export default function LoginForm({ onLogin }) {
     };
 
     // Forgot-password view (mode === 'forgot').
+    // How: returning early renders a separate, simpler tree for forgot mode; the main form below is only built for login
+    // and register.
     if (isForgot) {
         return (
             <>
@@ -108,6 +123,7 @@ export default function LoginForm({ onLogin }) {
                 </header>
 
                 {/* After sending, show the confirmation; otherwise show the email form. */}
+                {/* How: a ternary inside JSX chooses between the confirmation text and the email form. */}
                 {forgotSent ? (
                     <p className={styles.footnote}>
                         If an account exists for that email, we've sent a reset link.
@@ -133,6 +149,8 @@ export default function LoginForm({ onLogin }) {
                         </div>
 
                         {/* Inline error from a failed request. */}
+                        {/* How: error is an empty string when there is none, which is falsy, so nothing renders;
+                            role=alert makes screen readers announce the message. */}
                         {error && (
                             <p className={styles.error} role="alert">
                                 {error}
@@ -175,6 +193,8 @@ export default function LoginForm({ onLogin }) {
             {/* Main form; submitting calls handleSubmit. */}
             <form className={styles.form} onSubmit={handleSubmit} noValidate={false}>
                 {/* Username field is only needed when registering. */}
+                {/* How: && renders the username field only in register mode, so login shows two fields and register shows
+                    three. */}
                 {isRegister && (
                     <div className={styles.field}>
                         <label className={styles.label} htmlFor={`${fieldId}-username`}>

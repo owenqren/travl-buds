@@ -55,11 +55,15 @@ class TripMemberControllerTest {
         Trip trip = new Trip();
         trip.setId(TRIP_ID);
         trip.setUser(owner);
+        // How: the repository stub makes trip 10 exist and belong to the owner, which is the precondition for the owner-
+        // only endpoints.
         when(tripRepo.findById(TRIP_ID)).thenReturn(Optional.of(trip));
     }
 
     // Approving a member that belongs to another trip: 404, status unchanged, nothing saved.
     @Test
+    // How: the stubbed member row has tripId 20 while the URL trip is 10, so the controller's tripId equality check must
+    // produce 404 without saving.
     void approveRejectsMemberFromAnotherTrip() {
         TripMember foreignMember = new TripMember();
         foreignMember.setId(99L);
@@ -90,6 +94,8 @@ class TripMemberControllerTest {
 
     // Happy path: a member of the same trip becomes APPROVED.
     @Test
+    // How: save() is stubbed to return the same object so the controller's response can be built, and the test checks
+    // the status field was mutated.
     void approveWorksForMemberOfTheSameTrip() {
         TripMember member = new TripMember();
         member.setId(5L);
@@ -105,6 +111,8 @@ class TripMemberControllerTest {
 
     // A caller without access (canAccess false) gets 403 and nothing is saved.
     @Test
+    // How: canAccess is stubbed to false for the caller's email, so the controller must stop at 403 before touching the
+    // repository.
     void addMemberIsForbiddenWithoutTripAccess() {
         Authentication outsiderAuth = new UsernamePasswordAuthenticationToken(
                 new User("mallory", "mallory@example.com"), null);
@@ -118,6 +126,8 @@ class TripMemberControllerTest {
 
     // The email is trimmed/lower-cased before the duplicate check, so a variant of an existing email gets 400.
     @Test
+    // How: the existence check is stubbed only for the normalized email 'friend@example.com'; a 400 proves the
+    // controller trimmed and lower-cased the input before calling it.
     void addMemberNormalizesEmailBeforeCheckingForDuplicates() {
         when(accessService.canAccess(TRIP_ID, "owner@example.com")).thenReturn(true);
         when(memberRepo.existsByTripIdAndEmail(TRIP_ID, "friend@example.com")).thenReturn(true);

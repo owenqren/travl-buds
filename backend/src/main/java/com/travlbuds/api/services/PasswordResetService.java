@@ -43,10 +43,14 @@ public class PasswordResetService {
     public String issueResetToken(User user) {
         // Random token, url-safe base64 (this raw value is what gets emailed).
         byte[] randomBytes = new byte[TOKEN_BYTES];
+        // How: SecureRandom is cryptographically strong; 32 random bytes give 256 bits, which are base64url-encoded into
+        // a URL-safe string for the emailed link.
         secureRandom.nextBytes(randomBytes);
         String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
 
         // Store only the hash and expiry on the User row (overwrites any earlier token).
+        // How: only the SHA-256 hex hash is saved. Because the raw token has high entropy, a plain hash is enough: a
+        // database leak does not reveal usable tokens.
         user.setResetTokenHash(hash(rawToken));
         user.setResetTokenExpiresAt(Instant.now().plusSeconds(TOKEN_TTL_MINUTES * 60));
         userRepository.save(user);
@@ -62,11 +66,15 @@ public class PasswordResetService {
         }
 
         // Find the user by hashed token and require an unexpired expiry.
+        // How: the incoming raw token is hashed the same way and looked up by hash; the filter then requires a non-null
+        // expiry later than now.
         Optional<User> match = userRepository.findByResetTokenHash(hash(rawToken))
                 .filter(user -> user.getResetTokenExpiresAt() != null
                         && user.getResetTokenExpiresAt().isAfter(Instant.now()));
 
         // Single-use: clear the token fields on the entity (the caller is responsible for saving).
+        // How: clearing both fields makes the token single-use; the in-memory change is persisted when AuthController
+        // saves the user.
         match.ifPresent(user -> {
             user.setResetTokenHash(null);
             user.setResetTokenExpiresAt(null);
@@ -78,6 +86,7 @@ public class PasswordResetService {
     // SHA-256 of the value as hex; the form in which tokens are stored.
     private String hash(String value) {
         try {
+            // How: digest() returns bytes and HexFormat converts them to a lowercase hex string.
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException error) {

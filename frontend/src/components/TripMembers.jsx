@@ -38,6 +38,8 @@ export default function TripMembers({
                 {/* Member list: email and status for everyone. */}
                 {members.length > 0 && (
                     <ul className={`${styles.rows} ${styles.rowsFirst}`}>
+                        {/* How: each member becomes one row keyed by its id; statusClass(m.status) picks the color class
+                            for that status. */}
                         {members.map(m => (
                             <li key={m.id} className={styles.memberRow}>
                                 <span className={styles.memberInfo}>
@@ -45,6 +47,8 @@ export default function TripMembers({
                                     <span className={`${styles.status} ${statusClass(m.status)}`}>{m.status}</span>
                                 </span>
                                 {/* Owner-only actions. */}
+                                {/* How: isOwner is computed in TripDetails from the trip's owner id; the backend
+                                    independently enforces the same rule, so hiding the buttons is only a convenience. */}
                                 {isOwner && (
                                     <span className={styles.memberActions}>
                                         {/* Approve/Reject only for PENDING members. */}

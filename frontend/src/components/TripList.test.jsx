@@ -53,6 +53,8 @@ describe('TripList', () => {
         const onViewDetails = vi.fn();
         render(<TripList trips={[ownedTrip]} onViewDetails={onViewDetails} currentUserId={1} />);
 
+        // How: the click lands on the trip name inside the row's <button> and bubbles up to its onClick, which calls
+        // onViewDetails(trip.id).
         await user.click(screen.getByText('Lisbon with the crew'));
 
         expect(onViewDetails).toHaveBeenCalledWith(1);

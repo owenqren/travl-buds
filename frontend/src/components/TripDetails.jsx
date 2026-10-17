@@ -64,6 +64,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     const [requestError, setRequestError] = useState('');
 
     // Derived: access status for this trip (null until loaded), whether the caller may use the trip endpoints, and whether they own the trip.
+    // How: results are tagged with their tripId; after navigating to another trip the tag no longer matches, so `access`
+    // is null until the new check finishes, which prevents a flash of the wrong view.
     const access = accessResult.tripId === tripId ? accessResult.status : null;
     const hasAccess = access === 'OWNER' || access === 'APPROVED';
     const isOwner = Boolean(trip?.user?.id) && trip.user.id === currentUserId;
@@ -73,6 +75,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         let cancelled = false;
 
         // GET /members/me; a 404 means the trip doesn't exist.
+        // How: the .then chain turns a 404 into a synthetic NOT_FOUND status, throws on other errors, and otherwise
+        // parses the JSON {status}. The catch falls back to NONE so the request-access screen shows.
         authFetch(`/api/trips/${tripId}/members/me`)
             .then(res => {
                 if (res.status === 404) return { status: 'NOT_FOUND' };
@@ -151,6 +155,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
 
         // Load both in parallel and update state together.
+        // How: both requests start as soon as their promises are created, so they run in parallel; Promise.all resolves
+        // when both finish and rejects if either fails.
         Promise.all([fetchLocations, fetchActivities])
             .then(([locData, actData]) => {
                 if (cancelled) return;
@@ -203,6 +209,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         } catch {
             setMemberStatus('Error adding member.');
         }
+        // How: clears the feedback message after 3 seconds.
         setTimeout(() => setMemberStatus(''), 3000);
     };
 
@@ -243,6 +250,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     const handleCopyShareLink = async () => {
         const shareUrl = `${window.location.origin}/trips/${tripId}`;
         try {
+            // How: the Clipboard API is asynchronous and can be refused (permissions or a non-secure page), so a failure
+            // falls back to showing the URL as text.
             await navigator.clipboard.writeText(shareUrl);
             setShareStatus('Link copied!');
             setTimeout(() => setShareStatus(''), 2000);
@@ -284,6 +293,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         })
             .then(res => {
                 if (!res.ok) throw new Error('Failed to cast vote.');
+                // How: returning a promise from .then makes the next .then wait for it, so the list is refreshed only
+                // after the vote succeeded.
                 return authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`);
             })
             .then(res => res.json())
@@ -371,6 +382,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     const handleSuggestIdeas = () => {
         const selectedDay = days.find(day => day.id === selectedDayId);
 
+        // How: a template literal builds a multi-line prompt; ${...} inserts the destination and date.
         sendAiMessage(`
             Suggest 5 realistic activities or food spots for this trip day.
 
@@ -431,6 +443,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     };
 
     // Stops for the day route map: activities and voted spots that have an address and time, ordered by time.
+    // How: the spread operator merges two mapped arrays into one list with a common shape; filter keeps entries that
+    // have both an address and a time, and sort orders them with localeCompare, which orders 'HH:MM' strings correctly.
     const dayStops = [
         ...activities.map(activity => ({
             id: `activity-${activity.id}`,

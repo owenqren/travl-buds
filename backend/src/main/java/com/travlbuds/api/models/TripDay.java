@@ -23,6 +23,7 @@ public class TripDay {
 
     // Auto-increment primary key; used as dayId in nested endpoints.
     @Id
+    // How: IDENTITY lets PostgreSQL assign the id on insert.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -33,14 +34,19 @@ public class TripDay {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id")
     @JsonIgnore
+    // How: the owning side of the relationship is a trip_id foreign key; LAZY avoids loading the trip with every day,
+    // and @JsonIgnore prevents a Trip -> Day -> Trip loop in the JSON.
     private Trip trip;
 
     // Child activities; deleting the day cascades to them (mappedBy TripActivity.tripDay).
     @OneToMany(mappedBy = "tripDay", cascade = CascadeType.ALL, orphanRemoval = true)
+    // How: mappedBy points at TripActivity.tripDay, so no extra column or table is created; cascade ALL means saving or
+    // deleting a day also saves or deletes its activities, and orphanRemoval deletes activities removed from the list.
     private List<TripActivity> activities = new ArrayList<>();
 
     // Child voting candidates; deleting the day cascades to them (mappedBy VotedLocation.tripDay).
     @OneToMany(mappedBy = "tripDay", cascade = CascadeType.ALL, orphanRemoval = true)
+    // How: same pattern as activities, mapped by VotedLocation.tripDay.
     private List<VotedLocation> votedLocations = new ArrayList<>();
 
     // No-arg constructor required by JPA/Jackson.

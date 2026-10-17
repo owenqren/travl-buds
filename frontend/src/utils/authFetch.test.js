@@ -10,8 +10,12 @@ describe('authFetch', () => {
     // Before each test: empty storage, a fake API URL, a mocked global fetch, and a writable window.location.
     beforeEach(() => {
         localStorage.clear();
+        // How: stubEnv overrides import.meta.env for the test, and stubGlobal replaces window.fetch with a mock that
+        // resolves to okResponse, so no network call happens.
         vi.stubEnv('VITE_API_URL', 'https://api.test');
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse));
+        // How: jsdom would try to navigate when href is assigned, so location is replaced with a plain object whose href
+        // can be inspected.
         Object.defineProperty(window, 'location', {
             writable: true,
             value: { href: '' },
@@ -44,6 +48,7 @@ describe('authFetch', () => {
 
         await authFetch('/api/trips');
 
+        // How: mock.calls records the arguments of each call; destructuring skips the URL and takes the options object.
         const [, init] = fetch.mock.calls[0];
         expect(init.headers.Authorization).toBe('Bearer abc123');
     });
@@ -74,6 +79,7 @@ describe('authFetch', () => {
     it('clears stored auth and redirects to / on a 401', async () => {
         localStorage.setItem('travlbudsToken', 'abc123');
         localStorage.setItem('travlbudsUser', '{"id":1}');
+        // How: overrides the default mock so the next fetch resolves to a 401.
         fetch.mockResolvedValue(unauthorizedResponse);
 
         await authFetch('/api/trips');

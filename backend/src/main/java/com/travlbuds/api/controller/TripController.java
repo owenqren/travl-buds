@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 
 // Exposes /api/trips (list, get, create).
+// How: @RestController returns JSON; @RequestMapping sets the common /api/trips prefix.
 @RestController
 @RequestMapping("/api/trips")
 
@@ -49,6 +50,8 @@ public class TripController {
         }
 
         // Trips the user owns plus trips they have been approved into.
+        // How: delegates to the service, which runs two queries (owned trips; shared trip ids then one batch fetch)
+        // instead of one per trip.
         List<Trip> userTrips = tripAccessService.findAccessibleTrips(user);
         return ResponseEntity.ok(userTrips);
     }
@@ -65,6 +68,8 @@ public class TripController {
             return ResponseEntity.status(403).body("Access denied.");
         }
 
+        // How: map(ResponseEntity::ok) turns a found trip into a 200 response and an empty Optional into 404; the
+        // explicit <ResponseEntity<?>> type argument is needed so both branches share one type.
         return tripRepository.findById(tripId)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -79,12 +84,16 @@ public class TripController {
             return ResponseEntity.status(401).body("Unauthorized.");
         }
 
+        // How: the body is deserialized into a Trip; the owner is then overwritten with the authenticated user so a
+        // client cannot create a trip for someone else.
         trip.setUser(user);
         Trip savedTrip = tripRepository.save(trip);
         return ResponseEntity.ok(savedTrip);
     }
 
     // Reads the User principal from the SecurityContext (set by JwtAuthenticationFilter); null when unauthenticated.
+    // How: reads the thread-local SecurityContext and pattern-matches the principal as a User; returns null for
+    // anonymous requests.
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

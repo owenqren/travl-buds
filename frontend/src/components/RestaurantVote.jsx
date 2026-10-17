@@ -38,6 +38,7 @@ export default function RestaurantVote({
 
                 {/* Candidate spots for the day. */}
                 <p className={styles.subhead}>Options</p>
+                {/* How: ternary between the empty message and the list of spots. */}
                 {votedLocations.length === 0 ? (
                     <p className={styles.note}>No locations suggested yet. Add one below!</p>
                 ) : (
@@ -54,6 +55,9 @@ export default function RestaurantVote({
                                 </div>
                                 <div className={styles.itemSide}>
                                     {/* After voting show the count (the backend only sends it then); before voting show a Vote button. */}
+                                    {/* How: counts are shown only after the user has voted, because before that the
+                                        backend sends voteCount as null; loc.voteCount !== 1 decides whether to add an 's'
+                                        to 'vote'. */}
                                     {hasVoted && (
                                         <span className={styles.itemCount}>
                                             {loc.voteCount} vote{loc.voteCount !== 1 ? 's' : ''}

@@ -7,6 +7,9 @@
  */
 
 /* Shell wrapping the logged-in dashboard (width, padding, vertical spacing). */
+/* How: declares local custom properties (--rule, --ink, --muted, --mark, --danger, --rail) mapped onto the global tokens
+ * from index.css; every descendant rule reads them with var(), so changing one value here retints the whole dashboard.
+ * Dark mode only needs to swap --danger because the global tokens already switch. */
 .shell {
   --rule: var(--border-clean);
   --ink: var(--text-h);
@@ -105,6 +108,9 @@
 }
 
 /* Underline that draws in on hover. */
+/* How: the underline is a 1px pseudo-element pinned to the bottom and squashed to zero width with transform: scaleX(0)
+ * from the left edge; hover and focus rules set scaleX(1) and the transition animates it drawing in. Transforms animate
+ * cheaply because they do not trigger layout. */
 .textButton::after {
   content: '';
   position: absolute;
@@ -176,6 +182,8 @@
 }
 
 /* A toggle button; its pressed state comes from aria-pressed. */
+/* How: opacity 0.6 dims unselected options and the pressed rule raises it, so the selected one stands out; transition:
+ * all with the expo-out curve eases hover and press changes quickly. */
 .option {
   position: relative;
   padding: 0;
@@ -192,6 +200,7 @@
 }
 
 /* Underline under an option button. */
+/* How: same scaleX underline technique as .textButton::after. */
 .option::after {
   content: '';
   position: absolute;
@@ -236,6 +245,8 @@
 /* New-trip form sits in a fixed-width left rail; the trip list fills the
    remaining width. The divider becomes a vertical rule between them and
    only reverts to a horizontal hairline once the columns collapse. */
+/* How: a two-column grid: the first column is capped at 470px (the form) and the second takes the remaining space;
+ * minmax(0, ...) lets content shrink instead of overflowing. */
 .stack {
   display: grid;
   grid-template-columns: minmax(0, 470px) minmax(0, 1fr);
@@ -281,6 +292,8 @@
 }
 
 /* Narrow rail on the left, wide content column on the right. */
+/* How: a grid with a left rail whose width comes from --rail and a flexible content column; align-items: start keeps the
+ * caption at the top instead of stretching to the row height. */
 .section {
   display: grid;
   grid-template-columns: var(--rail) minmax(0, 1fr);
@@ -367,6 +380,8 @@
  * Underline-only inputs. The `.field` prefix outranks the global
  * input[type='date'] rules in index.css.
  */
+/* How: only a bottom border, with no background or radius, so inputs read as underlined lines; the outline is removed
+ * here and focus is shown by the :focus rule below. */
 .field .input {
   width: 100%;
   box-sizing: border-box;
@@ -410,6 +425,8 @@
 }
 
 /* Primary submit button (TripForm, ActivityPlanner, RestaurantVote, access request). */
+/* How: a full-width flex row with justify-content: space-between puts the label on the left and the arrow on the right;
+ * a solid --ink background with --bg text makes a flat block button. */
 .submit {
   display: inline-flex;
   align-items: center;
@@ -450,6 +467,7 @@
 }
 
 /* Trailing arrow in buttons and trip rows. */
+/* How: set in the mono font; the transition lets rules such as .tripRow:focus-visible .arrow move it smoothly. */
 .arrow {
   font-family: var(--mono);
   font-size: 0.9375rem;
@@ -459,6 +477,7 @@
 .submit:hover:not(:disabled) .arrow,
 .tripRow:hover .arrow,
 /* Arrow reacts when a trip row has keyboard focus. */
+/* How: translateX(4px) nudges the arrow to the right when the row has keyboard focus. */
 .tripRow:focus-visible .arrow {
   transform: translateX(4px);
 }
@@ -473,6 +492,8 @@
 }
 
 /* Clickable row for one trip in TripList. */
+/* How: a three-column grid (flexible text, auto-width meta, auto-width arrow) on a <button>; only a bottom border
+ * separates rows, so there are no cards. */
 .tripRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -642,6 +663,8 @@
 }
 
 /* Disable motion for users who prefer reduced motion. */
+/* How: transition-duration is forced to 1ms (not 0, so transitionend events still fire) with !important, which
+ * effectively disables animation for everything inside .shell, including pseudo-elements. */
 @media (prefers-reduced-motion: reduce) {
   .shell *,
   .shell *::after {

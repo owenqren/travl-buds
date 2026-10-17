@@ -18,5 +18,7 @@ import com.travlbuds.api.models.Trip;
 // Used by TripController and TripAccessService.
 public interface TripRepository extends JpaRepository<Trip, Long> {
     // Derived query: depends on Trip.user (owner) having an id.
+    // How: generates 'where t.user.id = ?1'; this returns only trips the user owns, and TripAccessService adds approved
+    // shared trips on top.
     List<Trip> findByUserId(Long userId);
 }

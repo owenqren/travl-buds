@@ -10,6 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 // configured in src/test/resources/application-test.properties, so this
 // runs the same on any machine or CI without needing real Supabase credentials.
 // @ActiveProfiles("test") loads application-test.properties on top of the defaults.
+// How: @SpringBootTest starts the real application context (all beans, Hibernate schema creation, security config) once
+// for this class; the test passes if startup throws nothing.
 @SpringBootTest
 @ActiveProfiles("test")
 class ApiApplicationTests {

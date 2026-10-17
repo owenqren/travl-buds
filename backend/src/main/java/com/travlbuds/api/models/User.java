@@ -30,16 +30,21 @@ public class User {
 
     // Password hash; hidden from JSON, written by AuthController and PasswordResetService.
     @JsonIgnore
+    // How: @JsonIgnore keeps Jackson from ever writing this field into a response, so the hash cannot leak when a User
+    // or a Trip containing a User is serialized.
     private String passwordHash;
 
     // SHA-256 hash of the single-use reset token and its expiry; both hidden from JSON, managed by PasswordResetService.
     @JsonIgnore
+    // How: the reset flow stores only the hash and an expiry on the user row; PasswordResetService.consumeToken nulls
+    // both once the token is used.
     private String resetTokenHash;
 
     @JsonIgnore
     private Instant resetTokenExpiresAt;
 
     // Empty constructor required by JPA
+    // How: the no-arg constructor is used by Hibernate when loading rows.
     public User() {
     }
 

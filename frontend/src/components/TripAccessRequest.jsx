@@ -39,6 +39,7 @@ export default function TripAccessRequest({
     onRequestAccess,
 }) {
     // Falls back to the NONE copy for unexpected status values.
+    // How: object lookup by status string; || falls back to the NONE copy when the status is null or unexpected.
     const copy = ACCESS_COPY[access] || ACCESS_COPY.NONE;
 
     // Page layout: header with back button, then an access section.
@@ -67,6 +68,8 @@ export default function TripAccessRequest({
                     <p className={styles.note}>{copy.body}</p>
 
                     {/* Request button only for visitors with no membership yet; calls onRequestAccess. */}
+                    {/* How: only visitors with no membership row see the button; PENDING and REJECTED visitors have
+                        already asked. */}
                     {access === 'NONE' && (
                         <button
                             type="button"

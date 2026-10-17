@@ -40,6 +40,7 @@ class TripAccessServiceTest {
 
         owner = new User("owner", "Owner@Example.com");
         owner.setId(1L);
+        // How: trip 10 is registered in setUp; any other id returns an empty Optional from the unstubbed mock.
         when(tripRepo.findById(TRIP_ID)).thenReturn(Optional.of(trip(TRIP_ID)));
     }
 
@@ -67,6 +68,7 @@ class TripAccessServiceTest {
 
     // Owner matching ignores email case.
     @Test
+    // How: the owner is stored as Owner@Example.com and queried as lower case, proving equalsIgnoreCase is used.
     void ownerIsMatchedIgnoringEmailCase() {
         assertEquals(Optional.of("OWNER"), service.accessStatus(TRIP_ID, "owner@example.com"));
     }
@@ -90,6 +92,8 @@ class TripAccessServiceTest {
 
     // canAccess is true only for the owner and APPROVED members; PENDING, REJECTED and missing trips are denied.
     @Test
+    // How: three membership rows with different statuses are stubbed; canAccess must be true only for the owner and
+    // APPROVED.
     void onlyOwnerAndApprovedMembersCanAccess() {
         when(memberRepo.findByTripIdAndEmailIgnoreCase(TRIP_ID, "approved@example.com"))
                 .thenReturn(Optional.of(member(TRIP_ID, "APPROVED")));
@@ -107,6 +111,8 @@ class TripAccessServiceTest {
 
     // Owned trips come first and shared trips follow, with a trip that is both owned and shared appearing once.
     @Test
+    // How: trip 1 is both owned and approved-shared, so the expected result [1, 2] proves de-duplication and ordering;
+    // findAllById is stubbed with the exact id list [1, 2].
     void accessibleTripsAreOwnedThenSharedWithoutDuplicates() {
         User user = new User("sam", "sam@example.com");
         user.setId(5L);

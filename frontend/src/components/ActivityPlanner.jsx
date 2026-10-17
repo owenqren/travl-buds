@@ -40,6 +40,8 @@ export default function ActivityPlanner({
                 <p className={styles.subhead}>Assistant</p>
                 <div className={styles.chatLog}>
                     {/* Empty hint or one bubble per message, styled by role. */}
+                    {/* How: renders a hint or maps each message to a bubble; key={index} is acceptable here because
+                        messages are only ever appended. */}
                     {aiMessages.length === 0 ? (
                         <p className={styles.note}>
                             Ask for trip ideas or use the suggestion button.
@@ -60,6 +62,8 @@ export default function ActivityPlanner({
                 <div className={styles.inlineForm}>
                     <label className={`${dash.field} ${styles.grow}`}>
                         <span className={dash.label}>Ask the AI</span>
+                        {/* How: there is no form element, so Enter is handled on the input itself: it sends the current
+                            text through onSendAiMessage and clears the field. */}
                         <input
                             type="text"
                             className={dash.input}
@@ -100,6 +104,8 @@ export default function ActivityPlanner({
 
                 {/* Activities already on the plan, with a Join button and interested count (activity.interestedUsers). */}
                 <p className={styles.subhead}>On the plan</p>
+                {/* How: the list comes from the activities array in TripDetails; interestedUsers?.length || 0 guards
+                    against a missing array in the backend JSON. */}
                 {activities.length === 0 ? (
                     <p className={styles.note}>No activities yet. Add one below!</p>
                 ) : (

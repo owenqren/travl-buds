@@ -33,10 +33,13 @@ public class VotedLocation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_day_id")
     @JsonIgnore
+    // How: foreign key trip_day_id; LAZY plus @JsonIgnore avoid extra queries and JSON loops.
     private TripDay tripDay;
 
     // Votes cast for this spot (mappedBy Vote.votedLocation); VotingController counts them but hides the count until the caller has voted.
     @OneToMany(mappedBy = "votedLocation", cascade = CascadeType.ALL, orphanRemoval = true)
+    // How: mappedBy Vote.votedLocation means the votes table holds the foreign key; the list is loaded lazily when
+    // getVotes() is first touched, and VotingController uses its size() as the count.
     private List<Vote> votes = new ArrayList<>();
 
     // No-arg constructor required by JPA/Jackson.

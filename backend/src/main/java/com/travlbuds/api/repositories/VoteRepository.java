@@ -20,6 +20,9 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     // Checks: Does a vote exist where the user_id matches AND
     // the destination's trip_id matches? Returns true or false.
     // Depends on Vote.user and Vote.votedLocation.tripDay; true means the user has voted that day.
+    // How: Spring walks the property path Vote.votedLocation -> VotedLocation.tripDay -> TripDay.id, producing a join
+    // from votes to voted_locations. The query returns true if any row matches both the user and the day, which is how
+    // one-vote-per-day is enforced.
     boolean existsByUserIdAndVotedLocationTripDayId(Long userId, Long tripDayId);
 
     // We will also need this one later to prevent double-voting in the POST request

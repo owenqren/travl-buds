@@ -14,6 +14,8 @@ export default function TripMap({ destination, mapProvider }) {
     if (!destination) return null;
 
     // Builds the embed URL for the chosen provider; no API key needed.
+    // How: encodeURIComponent escapes spaces and special characters so the destination is safe inside a query string;
+    // output=embed asks the provider for an iframe-friendly page, and no API key is needed.
     const mapUrl = mapProvider === 'baidu'
         ? `https://map.baidu.com/?latlng=&title=${encodeURIComponent(destination)}&content=${encodeURIComponent(destination)}&output=embed&src=travlbuds`
         : `https://www.google.com/maps?q=${encodeURIComponent(destination)}&output=embed`;

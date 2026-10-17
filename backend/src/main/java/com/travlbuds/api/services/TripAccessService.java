@@ -51,13 +51,17 @@ public class TripAccessService {
      */
     public Optional<String> accessStatus(Long tripId, String userEmail) {
         // Load the trip (one query); empty result if it doesn't exist.
+        // How: one lookup by primary key; the trip's owner is loaded with it (eager many-to-one), so the owner email
+        // comparison needs no second query.
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return Optional.empty();
         // Owner check against Trip.user's email.
+        // How: the owner check happens first so owners never hit the membership table.
         if (trip.getUser().getEmail().equalsIgnoreCase(userEmail))
             return Optional.of(OWNER);
         // Otherwise use the TripMember status, or NONE if no membership row exists.
+        // How: one query for the membership row; map() extracts its status string and orElse(NONE) represents 'no row'.
         return Optional.of(memberRepo.findByTripIdAndEmailIgnoreCase(tripId, userEmail)
                 .map(TripMember::getStatus)
                 .orElse(NONE));
@@ -67,12 +71,16 @@ public class TripAccessService {
     public List<Trip> findAccessibleTrips(User user) {
         // Start with owned trips, keyed by id (LinkedHashMap keeps order and dedups).
         Map<Long, Trip> trips = new LinkedHashMap<>();
+        // How: LinkedHashMap keyed by trip id preserves insertion order (owned trips first) and de-duplicates by id.
         tripRepo.findByUserId(user.getId()).forEach(trip -> trips.put(trip.getId(), trip));
 
         // Collect ids of trips where the user's membership is APPROVED, then fetch them in one batch query (avoids N+1).
+        // How: collects the ids of trips where the user is APPROVED.
         List<Long> sharedTripIds = memberRepo.findByEmailIgnoreCaseAndStatus(user.getEmail(), APPROVED).stream()
                 .map(TripMember::getTripId)
                 .toList();
+        // How: findAllById issues one 'where id in (...)' query for all shared trips instead of one query per trip,
+        // which avoids the N+1 pattern; putIfAbsent skips trips already added as owned.
         tripRepo.findAllById(sharedTripIds).forEach(trip -> trips.putIfAbsent(trip.getId(), trip));
 
         return new ArrayList<>(trips.values());

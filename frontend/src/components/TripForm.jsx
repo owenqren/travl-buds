@@ -17,6 +17,8 @@ export default function TripForm({ onTripAdded }) {
     });
 
     // Truthy only when name, destination and both dates are filled in.
+    // How: trim() makes whitespace-only text empty (falsy); the && chain yields a truthy value only if every field is
+    // filled, and it feeds disabled={!isValid} on the button.
     const isValid = tripData.name.trim() && tripData.destination.trim() && tripData.startDate && tripData.endDate;
 
     // Posts the trip to POST /api/trips; the owner is set server-side from the JWT.
@@ -28,6 +30,8 @@ export default function TripForm({ onTripAdded }) {
 
         try {
             // authFetch adds the Bearer token and VITE_API_URL.
+            // How: authFetch adds the API base URL and the Bearer header; the body is the JSON string of tripData, and
+            // the backend assigns the id and owner.
             const response = await authFetch('/api/trips', {
                 method: 'POST',
                 body: JSON.stringify(tripData)
@@ -55,6 +59,8 @@ export default function TripForm({ onTripAdded }) {
                 <h2 className={styles.sectionTitle}>New trip</h2>
 
                 {/* Name and destination inputs update tripData. */}
+                {/* How: a native form lets Enter in a text input submit; the inputs are controlled, so React state is the
+                    single source of truth. */}
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <label className={styles.field}>
                         <span className={styles.label}>Trip name</span>
@@ -77,6 +83,8 @@ export default function TripForm({ onTripAdded }) {
                         />
                     </label>
                     {/* Start and end dates; Enter submits via handleSubmit. */}
+                    {/* How: date inputs call handleSubmit on Enter themselves because browsers do not always submit a
+                        form from a date field; handleSubmit re-checks isValid for that reason. */}
                     <div className={styles.fieldRow}>
                         <label className={styles.field}>
                             <span className={styles.label}>Start</span>

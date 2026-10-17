@@ -26,6 +26,7 @@ public class PasswordResetRateLimiter {
     // Limit settings and per-email request timestamps (the only mutable state).
     private final int maxRequests;
     private final Duration window;
+    // How: same sliding-window design as AiRateLimiter but keyed by the normalized email string.
     private final Map<String, Deque<Instant>> requestsByEmail = new ConcurrentHashMap<>();
 
     // Reads max-requests and window-seconds from application properties.
@@ -41,14 +42,18 @@ public class PasswordResetRateLimiter {
         // Window start: anything older than this no longer counts.
         Instant now = Instant.now();
         Instant cutoff = now.minus(window);
+        // How: atomically creates the email's queue on first use.
         Deque<Instant> timestamps = requestsByEmail.computeIfAbsent(email, id -> new ArrayDeque<>());
 
         // Lock this email's deque so concurrent requests can't race.
+        // How: locks only this email's queue so concurrent requests for it are counted correctly.
         synchronized (timestamps) {
             // Drop expired timestamps, then reject if the window is already full.
+            // How: drops timestamps older than the window from the front of the deque.
             while (!timestamps.isEmpty() && timestamps.peekFirst().isBefore(cutoff)) {
                 timestamps.pollFirst();
             }
+            // How: if the remaining timestamps already reach the limit, the request is refused without being recorded.
             if (timestamps.size() >= maxRequests) {
                 return false;
             }

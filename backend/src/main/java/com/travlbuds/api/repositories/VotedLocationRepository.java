@@ -22,5 +22,7 @@ public interface VotedLocationRepository extends JpaRepository<VotedLocation, Lo
     // Spring Boot sees "findBy" and "TripId" and automatically
     // generates the SQL to search the foreign key
     // Depends on VotedLocation.tripDay having an id.
+    // How: parsed into 'where v.tripDay.id = ?1'; each returned VotedLocation's votes are lazily loaded later when
+    // VotingController counts them.
     List<VotedLocation> findByTripDayId(Long tripDayId);
 }

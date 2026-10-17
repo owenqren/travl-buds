@@ -7,6 +7,8 @@
  */
 
 /* Page grid: 7/5 columns (masthead | panel), local color tokens, left-aligned text (overrides the #root centering from index.css). */
+/* How: a CSS grid with columns 7fr and 5fr produces the asymmetric split; minmax(0, ...) stops long content from
+ * stretching a column, and clamp() makes the gaps and padding scale with the viewport between a minimum and maximum. */
 .page {
   --rule: var(--border);
   --ink: var(--text-h);
@@ -76,6 +78,8 @@
 }
 
 /* Hairline that fills the space after the eyebrow text. */
+/* How: flex: 1 makes the pseudo-element absorb the remaining row width, drawing a rule that stretches to the end of the
+ * line. */
 .eyebrow::after {
   content: '';
   flex: 1;
@@ -84,6 +88,8 @@
 }
 
 /* Oversized, tight-tracked headline. */
+/* How: clamp() makes the font size fluid between 3.25rem and 6.25rem (8.5vw in between); negative letter-spacing and
+ * line-height 0.9 tighten the lines. */
 .display {
   margin: 0;
   font-family: var(--heading);
@@ -166,6 +172,8 @@
 
 /* -------------------------------------------------------------- form panel */
 
+/* How: padding-top pushes the form down on wide screens (the deliberate misalignment with the masthead) and border-left
+ * draws the vertical hairline between the two columns. */
 .panel {
   position: relative;
   /* The deliberate misalignment: the form starts well below the masthead. */
@@ -244,6 +252,8 @@
 }
 
 /* Underline-only inputs: no rounded boxes anywhere on this surface. */
+/* How: only a bottom border, no background or radius, so inputs read as underlined lines; transition: border-color eases
+ * the hover and focus color change. */
 .input {
   width: 100%;
   box-sizing: border-box;
@@ -303,6 +313,8 @@
 }
 
 /* Primary submit button (text plus arrow). */
+/* How: flex with space-between puts the label and arrow at opposite ends; the transitions on background, opacity and
+ * letter-spacing animate the hover and disabled states. */
 .submit {
   --shift: 0;
 
@@ -382,6 +394,8 @@
 }
 
 /* Underline that draws in on hover. */
+/* How: the underline is a pseudo-element squashed with scaleX(0) from the left; the hover and focus rules set scaleX(1)
+ * so it draws in. */
 .switch::after {
   content: '';
   position: absolute;

@@ -23,6 +23,7 @@ public class TripActivity {
 
     // Auto-increment primary key; used as activityId in the join/leave endpoints.
     @Id
+    // How: IDENTITY lets PostgreSQL assign the id on insert.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -37,19 +38,25 @@ public class TripActivity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_day_id")
     @JsonIgnore
+    // How: FetchType.LAZY means Hibernate loads the day only if it is accessed, avoiding an extra query per activity;
+    // @JsonIgnore keeps Jackson from walking from the activity back to the day and its activities (an infinite loop).
     private TripDay tripDay;
 
     // User who created the activity (FK user_id), set from the authenticated caller.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    // How: a lazy many-to-one stored in the user_id column.
     private User suggestedBy;
 
     // Opt-in list stored in the activity_interests join table; changed by the join/leave endpoints.
+    // How: Hibernate keeps a separate join table, activity_interests(activity_id, user_id). Adding or removing a User
+    // from this Set inserts or deletes a row there when the activity is saved; a Set prevents duplicates.
     @ManyToMany
     @JoinTable(name = "activity_interests", joinColumns = @JoinColumn(name = "activity_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> interestedUsers = new HashSet<>();
 
     // No-arg constructor required by JPA/Jackson.
+    // How: required so Hibernate and Jackson can instantiate the entity before setting fields.
     public TripActivity() {
     }
 

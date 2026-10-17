@@ -25,12 +25,14 @@ public class Vote {
     // FK user_id -> users; VoteRepository queries on it.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    // How: lazy many-to-one stored in the user_id column; VoteRepository queries through this relation.
     private User user;
 
     // A vote belongs to ONE destination
     // FK voted_location_id -> voted_locations; its tripDay drives the one-vote-per-day check.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voted_location_id")
+    // How: lazy many-to-one stored in voted_location_id; to reach the day, queries follow votedLocation.tripDay.
     private VotedLocation votedLocation;
 
     // Empty constructor required by Hibernate

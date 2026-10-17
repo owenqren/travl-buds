@@ -12,6 +12,8 @@ import App from './App.jsx'
  * Mounts the main App component into the root DOM node using React StrictMode.
  */
 // Mounts into the #root element from index.html; BrowserRouter enables useNavigate/Routes inside App.
+// How: createRoot attaches React to the existing #root element. StrictMode runs extra checks in development, and
+// BrowserRouter exposes the URL to useNavigate and Routes through React context.
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

@@ -44,6 +44,8 @@ public class TripDayController {
 
     // GET ALL DAYS FOR A TRIP
     // Lists days in date order; @Transactional keeps the session open while the days are serialized.
+    // How: keeps the persistence session open while Jackson serializes the days, since TripDay contains lazy
+    // collections.
     @Transactional
     @GetMapping("/{tripId}/days")
     public ResponseEntity<?> getDays(@PathVariable Long tripId, Authentication auth) {
@@ -52,6 +54,7 @@ public class TripDayController {
         if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
+        // How: a single query returns the days in date order.
         return ResponseEntity.ok(tripDayRepo.findByTripIdOrderByDateAsc(tripId));
     }
 
@@ -66,9 +69,12 @@ public class TripDayController {
             return ResponseEntity.status(403).body("Access denied.");
         }
         // Load the parent trip (404 if missing), attach it and save.
+        // How: the parent trip is loaded so the new day can reference it.
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return ResponseEntity.status(404).body("Trip not found.");
+        // How: the JSON body (a date) is deserialized into a TripDay, the server sets the parent trip, and save()
+        // returns the persisted entity with its id.
         dayRequest.setTrip(trip);
         return ResponseEntity.ok(tripDayRepo.save(dayRequest));
     }

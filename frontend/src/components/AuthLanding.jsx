@@ -44,6 +44,8 @@ export default function AuthLanding({ onLogin }) {
 
                 {/* Numbered list built from CAPABILITIES. */}
                 <ol className={styles.index}>
+                    {/* How: map turns each data object into an <li>; destructuring in the callback parameter pulls out
+                        num, label and note, and key={num} gives React a stable identity for each row. */}
                     {CAPABILITIES.map(({ num, label, note }) => (
                         <li key={num} className={styles.indexItem}>
                             <span className={styles.indexNum}>{num}</span>
@@ -58,6 +60,8 @@ export default function AuthLanding({ onLogin }) {
 
             {/* Auth panel: LoginForm plus a privacy note. */}
             <section className={styles.panel}>
+                {/* How: onLogin is passed down as a prop; LoginForm calls it with the backend response, which runs
+                    App.jsx's handleLogin. */}
                 <LoginForm onLogin={onLogin} />
 
                 <p className={styles.footnote}>

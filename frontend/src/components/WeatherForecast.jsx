@@ -40,6 +40,8 @@ export default function WeatherForecast({ destination, tripDays, units }) {
     const [result, setResult] = useState({ destination: null, weather: null, error: null });
 
     // Derived flags: ignore a result fetched for a previous destination; loading is true until the current destination has a result.
+    // How: these values are computed during render instead of stored, so they cannot drift out of sync; comparing the
+    // stored destination with the current prop hides stale results when the destination changes.
     const isCurrent = result.destination === destination;
     const loading = Boolean(destination) && !isCurrent;
     const weather = isCurrent ? result.weather : null;
@@ -62,6 +64,8 @@ export default function WeatherForecast({ destination, tripDays, units }) {
         let cancelled = false;
 
         // Step 1: geocode the destination with Open-Meteo (browser call, no backend).
+        // How: Open-Meteo's geocoding API turns the destination text into coordinates; count=1 requests only the best
+        // match. The call goes straight from the browser, with no backend involved.
         fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1`)
             .then(res => res.json())
             .then(geoData => {
@@ -73,11 +77,16 @@ export default function WeatherForecast({ destination, tripDays, units }) {
                 const { latitude, longitude } = geoData.results[0];
 
                 // Step 2: daily min/max temperature and weather code for ~16 days.
+                // How: returning this second fetch from inside .then chains it, so the next .then receives its response.
+                // The query asks for daily max/min temperature and weather code, one past day and 16 forecast days, with
+                // timezone=auto so dates match the location.
                 return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&past_days=1&forecast_days=16`);
             })
             .then(res => res.json())
             .then(weatherData => {
                 // Store the daily data with the destination it belongs to.
+                // How: cancelled is set by the cleanup function, so a response that arrives after the destination
+                // changed (or the component unmounted) is ignored.
                 if (!cancelled) setResult({ destination, weather: weatherData.daily, error: null });
             })
             .catch(err => {
@@ -106,6 +115,8 @@ export default function WeatherForecast({ destination, tripDays, units }) {
         // Filter weather to only show days that match trip days
         const relevantDays = tripDays
             .map(day => {
+                // How: Open-Meteo returns parallel arrays (time, temperature_2m_max, temperature_2m_min, weathercode),
+                // so the index of the date finds the matching value in each one.
                 const index = weather.time.indexOf(day.date);
 
                 if (index === -1) {

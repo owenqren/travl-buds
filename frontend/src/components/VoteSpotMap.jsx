@@ -13,6 +13,8 @@ export default function VoteSpotMap({ locations = [], destination }) {
     const [currentPosition, setCurrentPosition] = useState(null);
 
     // Addresses (or names) of the suggested spots, recomputed only when locations change.
+    // How: useMemo caches the result between renders and recomputes only when `locations` changes; each spot uses its
+    // trimmed address, falling back to its name, and filter(Boolean) removes empty entries.
     const spots = useMemo(() => {
         return locations
             .map(location => location.address?.trim() || location.name?.trim())
@@ -21,6 +23,8 @@ export default function VoteSpotMap({ locations = [], destination }) {
 
     // Asks the browser for the user's position once; on denial the position stays null.
     useEffect(() => {
+        // How: the browser asks the user for permission; the first callback stores latitude/longitude and the second
+        // resets to null if denied. The empty dependency array makes it run once on mount.
         navigator.geolocation?.getCurrentPosition(
             position => {
                 setCurrentPosition({
@@ -47,6 +51,9 @@ export default function VoteSpotMap({ locations = [], destination }) {
     const waypointSpots = spots.slice(0, -1);
 
     // Google Maps directions URL built from origin, destination, waypoints and travel mode.
+    // How: URL parts are collected in an array, empty ones (such as no waypoints) are filtered out, and the rest are
+    // joined with & into a query string; each value is escaped with encodeURIComponent and waypoints are joined with |
+    // as Google expects.
     const mapUrl = [
         'https://www.google.com/maps/dir/?api=1',
         `origin=${encodeURIComponent(origin || finalSpot)}`,
@@ -102,6 +109,8 @@ export default function VoteSpotMap({ locations = [], destination }) {
                 </div>
 
                 {/* Link to the full route in Google Maps (embed flag removed). */}
+                {/* How: the iframe only shows the final spot; this link removes output=embed to open the full multi-stop
+                    route in Google Maps in a new tab, and rel=noreferrer avoids leaking the page URL. */}
                 <a
                     className={styles.link}
                     href={mapUrl.replace('&output=embed', '')}

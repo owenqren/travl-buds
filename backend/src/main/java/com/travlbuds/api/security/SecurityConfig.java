@@ -31,6 +31,9 @@ public class SecurityConfig {
 
     // CORS policy: hardcoded allowed origins (production site and Vite dev server); applies to all paths.
     @Bean
+    // How: browsers block cross-origin calls unless the server answers with CORS headers. Spring matches the request's
+    // Origin header against this allow-list; allowCredentials(true) is why origins must be listed explicitly instead of
+    // '*'.
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("https://travlbuds.com", "http://localhost:5173"));
@@ -46,6 +49,10 @@ public class SecurityConfig {
     // Main chain: stateless, no CSRF, only /api/auth/** is public, other /api/** needs a valid JWT; depends on corsConfigurationSource and the JWT filter.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // How: HttpSecurity is a builder. csrf is disabled because requests authenticate with a Bearer header, not
+        // cookies; STATELESS stops Spring creating HTTP sessions; authorization rules are checked top to bottom (first
+        // match wins), so /api/auth/** is public and the rest of /api/** requires an authenticated User set by the JWT
+        // filter.
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -55,12 +62,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/ai/**").authenticated()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
+                // How: puts the JWT filter ahead of Spring's username/password filter so the SecurityContext is
+                // populated before authorization rules run.
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     // BCrypt encoder used by AuthController to hash and verify passwords.
     @Bean
+    // How: BCrypt hashes passwords with a per-password random salt and a work factor, so identical passwords produce
+    // different hashes and brute force is slow; Spring injects this bean wherever a PasswordEncoder is requested.
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Exposes the destination/voting endpoints and enforces the blind-vote anonymity rule.
+// How: @RestController returns JSON; all routes live under /api/trips/{tripId}/days/{dayId}/...
 @RestController
 @RequestMapping("/api/trips")
 public class VotingController {
@@ -63,17 +64,24 @@ public class VotingController {
         TripDay tripDay = tripDayRepo.findById(dayId).orElse(null);
         if (tripDay == null)
             return ResponseEntity.status(404).body("Day not found.");
+        // How: this prevents using a dayId from a different trip while holding access to the URL's trip.
         if (!tripDay.getTrip().getId().equals(tripId)) {
             return ResponseEntity.badRequest().body("Day does not belong to this trip.");
         }
 
         // Load candidates and check once whether the caller has voted (VoteRepository).
+        // How: one query loads the day's candidate spots.
         List<VotedLocation> locations = votedLocationRepo.findByTripDayId(dayId);
+        // How: one existence query tells whether the caller has any vote on this day; it is computed once, outside the
+        // loop, to avoid a query per location.
         boolean hasVoted = voteRepo.existsByUserIdAndVotedLocationTripDayId(user.getId(), dayId);
         List<DestinationResponse> responseList = new ArrayList<>();
 
         // Anonymity rule: only reveal counts (VotedLocation.votes size) to users who already voted.
         for (VotedLocation loc : locations) {
+            // How: the ternary yields a count or null; since DestinationResponse uses Integer, null is serialized as
+            // JSON null, hiding results. loc.getVotes().size() loads each location's votes lazily, which can cost one
+            // query per location.
             Integer voteCount = hasVoted ? loc.getVotes().size() : null;
             responseList.add(new DestinationResponse(
                     loc.getId(), loc.getName(), loc.getAddress(), loc.getVisitTime(), voteCount));
@@ -105,6 +113,8 @@ public class VotingController {
             return ResponseEntity.status(401).body("Unauthorized.");
         if (location == null)
             return ResponseEntity.status(404).body("Location not found.");
+        // How: two consistency checks make sure the chosen location belongs to the day and trip in the URL before a vote
+        // is written.
         if (!location.getTripDay().getId().equals(dayId)) {
             return ResponseEntity.badRequest().body("Location does not belong to this day.");
         }
@@ -117,6 +127,8 @@ public class VotingController {
         }
 
         // Persist the vote linking the caller to the location.
+        // How: inserts one row linking the caller to the location; the earlier existence check, not a database
+        // constraint, is what enforces one vote per day.
         voteRepo.save(new Vote(user, location));
         return ResponseEntity.ok("Vote successfully cast!");
     }
@@ -149,6 +161,8 @@ public class VotingController {
         }
 
         // Attach the day and save.
+        // How: Jackson builds a VotedLocation from the JSON (name, address, time); the server sets the parent day and
+        // saves it.
         locationRequest.setTripDay(tripDay);
         votedLocationRepo.save(locationRequest);
         return ResponseEntity.ok(locationRequest);

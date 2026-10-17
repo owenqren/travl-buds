@@ -38,6 +38,8 @@ public class EmailService {
     private String fromEmail;
 
     // Shared HTTP client with a 10s connect timeout.
+    // How: java.net.http.HttpClient is thread-safe and reused for all sends; the connect timeout bounds how long a dead
+    // network can block.
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -61,6 +63,8 @@ public class EmailService {
 
         try {
             // Request payload for Resend's /emails endpoint.
+            // How: building the body from a Map and letting Jackson serialize it escapes quotes and special characters
+            // in the HTML and addresses correctly.
             String jsonBody = objectMapper.writeValueAsString(Map.of(
                     "from", fromEmail,
                     "to", toEmail,
@@ -68,6 +72,8 @@ public class EmailService {
                     "html", html));
 
             // Authenticated POST to Resend using apiKey.
+            // How: Resend authenticates with a Bearer API key; the 15s request timeout prevents the forgot-password
+            // request from hanging if Resend is slow.
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.resend.com/emails"))
                     .header("Authorization", "Bearer " + apiKey)
@@ -76,14 +82,17 @@ public class EmailService {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
+            // How: send() is synchronous, so the calling thread waits for Resend's response.
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             // Non-2xx is only logged, never thrown (see class doc).
+            // How: integer division maps 200-299 to 2, so any non-2xx status is logged as a warning.
             if (response.statusCode() / 100 != 2) {
                 log.warn("Resend returned status {}: {}", response.statusCode(), response.body());
             }
         } catch (InterruptedException interrupted) {
             // Restore the interrupt flag, then log.
+            // How: re-setting the interrupt flag preserves the cancellation signal for the thread.
             Thread.currentThread().interrupt();
             log.warn("Password reset email send interrupted", interrupted);
         } catch (Exception failure) {

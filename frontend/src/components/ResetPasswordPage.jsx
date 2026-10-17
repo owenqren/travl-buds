@@ -18,6 +18,8 @@ export default function ResetPasswordPage({ onLogin }) {
     // navigate redirects after success; fieldId links labels to inputs; token is read from the ?token= query param of the emailed link.
     const navigate = useNavigate();
     const fieldId = useId();
+    // How: window.location.search is the '?token=...' part of the URL; URLSearchParams parses it and get() returns null
+    // when the parameter is missing.
     const token = new URLSearchParams(window.location.search).get('token');
 
     // Form state: both password fields, an error message and a submit-in-progress flag.
@@ -32,6 +34,8 @@ export default function ResetPasswordPage({ onLogin }) {
         setError('');
 
         // Mismatch: show an error and stop before any request.
+        // How: this client-side check avoids a round trip for a typo; the backend separately enforces the 8-character
+        // minimum.
         if (newPassword !== confirmPassword) {
             setError('Passwords do not match.');
             return;
@@ -42,6 +46,8 @@ export default function ResetPasswordPage({ onLogin }) {
 
         try {
             // POST to /api/auth/reset-password (plain fetch: the user has no JWT yet).
+            // How: the raw token and the new password are sent in the JSON body; the backend hashes the token to find
+            // the user.
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -57,6 +63,8 @@ export default function ResetPasswordPage({ onLogin }) {
 
             // Success: log the user in through App.jsx's handleLogin, then go to the dashboard route.
             onLogin(data);
+            // How: replace swaps the current history entry, so the Back button does not return to the reset URL with its
+            // token.
             navigate('/', { replace: true });
         } catch (err) {
             setError(err.message);
@@ -81,6 +89,7 @@ export default function ResetPasswordPage({ onLogin }) {
 
             {/* Panel: shows an invalid-link message without a token, otherwise the reset form. */}
             <section className={styles.panel}>
+                {/* How: a ternary inside JSX shows an error panel without a token and the form with one. */}
                 {!token ? (
                     <>
                         <header className={styles.panelHead}>

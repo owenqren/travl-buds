@@ -19,5 +19,7 @@ import java.util.List;
 // Used by TripDayController and the voting/activity controllers to validate dayId.
 public interface TripDayRepository extends JpaRepository<TripDay, Long> {
     // Derived query: depends on TripDay.trip (id) and TripDay.date for the ordering.
+    // How: the name is parsed into a filter on trip.id and an ORDER BY date ASC, so the database returns the days
+    // already sorted and the controller needs no sorting code.
     List<TripDay> findByTripIdOrderByDateAsc(Long tripId);
 }

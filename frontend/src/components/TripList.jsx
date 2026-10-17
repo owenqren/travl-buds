@@ -28,6 +28,8 @@ export default function TripList({ trips, onViewDetails, currentUserId }) {
                 <h2 className={styles.sectionTitle}>Your trips</h2>
 
                 {/* Handle the initial state before any data has loaded over the network */}
+                {/* How: a ternary renders either the empty state or the list; trips is also empty before the first fetch
+                    finishes. */}
                 {trips.length === 0 ? (
                     <div className={styles.empty}>
                         <p className={styles.emptyTitle}>No trips yet.</p>
@@ -39,6 +41,8 @@ export default function TripList({ trips, onViewDetails, currentUserId }) {
                     <ul className={styles.tripList}>
                         {trips.map((trip) => {
                             // Owner if the trip's user id matches the logged-in user, otherwise it is shared.
+                            // How: optional chaining avoids an error if user is missing; the backend includes the owner
+                            // inside each Trip JSON object.
                             const isOwner = trip.user?.id === currentUserId;
 
                             // One clickable row per trip.

@@ -49,12 +49,15 @@ class TripMemberAccessRequestTest {
     }
 
     // Helper: makes the mocked access service report the given status for the caller.
+    // How: stubs accessStatus with the exact (untrimmed, mixed-case) email string the principal holds, because the
+    // controller passes the email through unchanged.
     private void givenStatus(String status) {
         when(accessService.accessStatus(TRIP_ID, "  Vic@Example.com ")).thenReturn(Optional.of(status));
     }
 
     // /me returns whatever status the access service reports.
     @Test
+    // How: calls the controller method directly and compares the response body map.
     void myAccessReturnsTheStatus() {
         givenStatus("PENDING");
 
@@ -74,6 +77,8 @@ class TripMemberAccessRequestTest {
 
     // NONE status: a PENDING row is saved with a trimmed, lower-cased email.
     @Test
+    // How: ArgumentCaptor records the TripMember passed to save() so the test can assert its fields, including the
+    // trimmed and lower-cased email.
     void requestCreatesAPendingMembershipForAStranger() {
         givenStatus("NONE");
 
@@ -89,6 +94,7 @@ class TripMemberAccessRequestTest {
 
     // Any existing status is echoed back and no row is saved.
     @Test
+    // How: loops over each existing status; verify(never()) after the loop proves save() was not called for any of them.
     void requestDoesNotCreateARowWhenOneAlreadyExists() {
         for (String existing : new String[] { "PENDING", "REJECTED", "APPROVED", "OWNER" }) {
             givenStatus(existing);
