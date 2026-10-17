@@ -19,10 +19,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+// Only unauthenticated routes in the API; SecurityConfig permits /api/auth/** and requires
+// a valid JWT (set as the User principal by JwtAuthenticationFilter) everywhere else.
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    // Same message whether or not the email exists, so forgot-password can't be used to enumerate accounts.
     private static final String GENERIC_FORGOT_PASSWORD_MESSAGE =
             "If an account exists for that email, we've sent a reset link.";
 
@@ -86,8 +89,9 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         User user = userRepository.findByEmail(request.email()).orElse(null);
 
+        // Same generic message for "no such user" and "wrong password" to avoid confirming which emails are registered.
         if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            return ResponseEntity.status(401).body("Invalid email or password.");
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid email or password."));
         }
 
         String token = jwtService.createToken(user.getEmail());
@@ -108,10 +112,12 @@ public class AuthController {
 
         String normalizedEmail = request.email().toLowerCase().trim();
 
+        // Per-email throttle, checked before touching the DB.
         if (!rateLimiter.tryAcquire(normalizedEmail)) {
             return ResponseEntity.status(429).body("Too many requests. Please wait a few minutes and try again.");
         }
 
+        // Silently no-op for unknown emails; response is identical either way (see GENERIC_FORGOT_PASSWORD_MESSAGE).
         Optional<User> user = userRepository.findByEmail(normalizedEmail);
         if (user.isPresent()) {
             String rawToken = passwordResetService.issueResetToken(user.get());
@@ -128,6 +134,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Password must be at least 8 characters.");
         }
 
+        // consumeToken validates the hash and 30-minute expiry, and invalidates the token so it can't be replayed.
         Optional<User> user = passwordResetService.consumeToken(request.token());
         if (user.isEmpty()) {
             return ResponseEntity.badRequest().body("This reset link is invalid or has expired.");

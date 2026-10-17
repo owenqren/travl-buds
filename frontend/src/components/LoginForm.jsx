@@ -39,7 +39,7 @@ export default function LoginForm({ onLogin }) {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(typeof data === 'string' ? data : 'Authentication failed.');
+                throw new Error(typeof data === 'string' ? data : data.message || 'Authentication failed.');
             }
 
             onLogin(data);
