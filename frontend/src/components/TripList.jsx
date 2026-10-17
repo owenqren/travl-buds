@@ -1,3 +1,4 @@
+// Dashboard CSS module.
 import styles from './Dashboard.module.css';
 
 /**
@@ -9,9 +10,12 @@ import styles from './Dashboard.module.css';
  */
 
 // Accept 'trips' directly as a prop from App.jsx
+// Presentational: no state; trips come from App.jsx and onViewDetails navigates to the trip route.
 export default function TripList({ trips, onViewDetails, currentUserId }) {
+    // Layout: caption rail on the left, list on the right.
     return (
         <section className={styles.section}>
+            {/* Captions, including the saved-trip count when there are trips. */}
             <div className={styles.rail}>
                 <span className={styles.caption}>02</span>
                 <span className={styles.caption}>Itineraries</span>
@@ -34,8 +38,10 @@ export default function TripList({ trips, onViewDetails, currentUserId }) {
                 ) : (
                     <ul className={styles.tripList}>
                         {trips.map((trip) => {
+                            // Owner if the trip's user id matches the logged-in user, otherwise it is shared.
                             const isOwner = trip.user?.id === currentUserId;
 
+                            // One clickable row per trip.
                             return (
                                 <li key={trip.id}>
                                     <button
@@ -48,9 +54,11 @@ export default function TripList({ trips, onViewDetails, currentUserId }) {
                                             <span className={styles.tripDestination}>{trip.destination}</span>
                                         </span>
                                         <span className={styles.tripMeta}>
+                                            {/* Badge: Owner or Shared. */}
                                             <span className={`${styles.tripBadge} ${isOwner ? '' : styles.tripBadgeShared}`}>
                                                 {isOwner ? 'Owner' : 'Shared'}
                                             </span>
+                                            {/* Start and end dates. */}
                                             <span className={styles.tripDates}>
                                                 {trip.startDate}
                                                 <br />

@@ -1,8 +1,10 @@
+// vitest helpers, Testing Library render/query/event utilities and the component under test.
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TripList from './TripList';
 
+// Fixtures: a trip owned by user 1 (the current user) and one owned by user 99 (shared).
 const ownedTrip = {
     id: 1,
     name: 'Lisbon with the crew',
@@ -20,13 +22,16 @@ const sharedTrip = {
     user: { id: 99 },
 };
 
+// Tests for TripList.
 describe('TripList', () => {
+    // Empty list renders the empty state.
     it('shows an empty state when there are no trips', () => {
         render(<TripList trips={[]} onViewDetails={vi.fn()} currentUserId={1} />);
 
         expect(screen.getByText('No trips yet.')).toBeInTheDocument();
     });
 
+    // Owner badge when trip.user.id matches currentUserId.
     it('marks a trip owned by the current user as "Owner"', () => {
         render(<TripList trips={[ownedTrip]} onViewDetails={vi.fn()} currentUserId={1} />);
 
@@ -34,6 +39,7 @@ describe('TripList', () => {
         expect(screen.queryByText('Shared')).not.toBeInTheDocument();
     });
 
+    // Shared badge otherwise.
     it('marks a trip owned by someone else as "Shared"', () => {
         render(<TripList trips={[sharedTrip]} onViewDetails={vi.fn()} currentUserId={1} />);
 
@@ -41,6 +47,7 @@ describe('TripList', () => {
         expect(screen.queryByText('Owner')).not.toBeInTheDocument();
     });
 
+    // Clicking a row calls onViewDetails with the trip id.
     it('calls onViewDetails with the trip id when a row is clicked', async () => {
         const user = userEvent.setup();
         const onViewDetails = vi.fn();

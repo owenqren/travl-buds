@@ -1,7 +1,10 @@
+// Repository package: Spring Data interfaces; Spring generates the implementations.
 package com.travlbuds.api.repositories;
 
+// JpaRepository supplies CRUD methods; comes from spring-data-jpa.
 import org.springframework.data.jpa.repository.JpaRepository;
 
+// Entity this repository persists.
 import com.travlbuds.api.models.VotedLocation;
 
 import java.util.List;
@@ -13,9 +16,11 @@ import java.util.List;
  * by trip day id.
  */
 
+// Used by VotingController.
 public interface VotedLocationRepository extends JpaRepository<VotedLocation, Long> {
-    
-    // Spring Boot sees "findBy" and "TripId" and automatically 
+
+    // Spring Boot sees "findBy" and "TripId" and automatically
     // generates the SQL to search the foreign key
+    // Depends on VotedLocation.tripDay having an id.
     List<VotedLocation> findByTripDayId(Long tripDayId);
 }

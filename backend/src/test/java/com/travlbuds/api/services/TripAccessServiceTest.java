@@ -1,5 +1,7 @@
+// Tests for TripAccessService.
 package com.travlbuds.api.services;
 
+// Classes under test and the mocked repositories.
 import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.TripMember;
 import com.travlbuds.api.models.User;
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
 
+// JUnit assertions and Mockito helpers.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,13 +22,16 @@ import static org.mockito.Mockito.when;
 
 class TripAccessServiceTest {
 
+    // Id of the trip every test starts with.
     private static final Long TRIP_ID = 10L;
 
+    // Mocked repositories, the service under test, and the trip owner.
     private TripRepository tripRepo;
     private TripMemberRepository memberRepo;
     private TripAccessService service;
     private User owner;
 
+    // Before each test: builds the service and registers trip 10 as owned by a mixed-case email.
     @BeforeEach
     void setUp() {
         tripRepo = mock(TripRepository.class);
@@ -37,6 +43,7 @@ class TripAccessServiceTest {
         when(tripRepo.findById(TRIP_ID)).thenReturn(Optional.of(trip(TRIP_ID)));
     }
 
+    // Helper: a Trip with the given id, owned by `owner`.
     private Trip trip(Long id) {
         Trip trip = new Trip();
         trip.setId(id);
@@ -44,6 +51,7 @@ class TripAccessServiceTest {
         return trip;
     }
 
+    // Helper: a TripMember row with the given trip id and status.
     private TripMember member(Long tripId, String status) {
         TripMember member = new TripMember();
         member.setTripId(tripId);
@@ -51,16 +59,19 @@ class TripAccessServiceTest {
         return member;
     }
 
+    // Unknown trip id gives an empty status.
     @Test
     void statusIsEmptyWhenTripDoesNotExist() {
         assertTrue(service.accessStatus(999L, "anyone@example.com").isEmpty());
     }
 
+    // Owner matching ignores email case.
     @Test
     void ownerIsMatchedIgnoringEmailCase() {
         assertEquals(Optional.of("OWNER"), service.accessStatus(TRIP_ID, "owner@example.com"));
     }
 
+    // A non-owner gets the stored membership status.
     @Test
     void memberStatusIsReturnedAsStored() {
         when(memberRepo.findByTripIdAndEmailIgnoreCase(TRIP_ID, "pat@example.com"))
@@ -69,6 +80,7 @@ class TripAccessServiceTest {
         assertEquals(Optional.of("PENDING"), service.accessStatus(TRIP_ID, "pat@example.com"));
     }
 
+    // No membership row gives NONE.
     @Test
     void strangerHasNoneStatus() {
         when(memberRepo.findByTripIdAndEmailIgnoreCase(TRIP_ID, "x@example.com")).thenReturn(Optional.empty());
@@ -76,6 +88,7 @@ class TripAccessServiceTest {
         assertEquals(Optional.of("NONE"), service.accessStatus(TRIP_ID, "x@example.com"));
     }
 
+    // canAccess is true only for the owner and APPROVED members; PENDING, REJECTED and missing trips are denied.
     @Test
     void onlyOwnerAndApprovedMembersCanAccess() {
         when(memberRepo.findByTripIdAndEmailIgnoreCase(TRIP_ID, "approved@example.com"))
@@ -92,6 +105,7 @@ class TripAccessServiceTest {
         assertFalse(service.canAccess(999L, "owner@example.com"));
     }
 
+    // Owned trips come first and shared trips follow, with a trip that is both owned and shared appearing once.
     @Test
     void accessibleTripsAreOwnedThenSharedWithoutDuplicates() {
         User user = new User("sam", "sam@example.com");

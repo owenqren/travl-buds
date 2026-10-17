@@ -6,6 +6,7 @@
  * index.css so light/dark inherit the rest of the app.
  */
 
+/* Shell wrapping the logged-in dashboard (width, padding, vertical spacing). */
 .shell {
   --rule: var(--border-clean);
   --ink: var(--text-h);
@@ -26,6 +27,7 @@
   text-align: left;
 }
 
+/* Dark-mode overrides for the shell. */
 @media (prefers-color-scheme: dark) {
   .shell {
     --danger: #ff7a95;
@@ -46,6 +48,7 @@
   border-bottom: 1px solid var(--rule);
 }
 
+/* Small uppercase label above the wordmark. */
 .eyebrow {
   grid-area: eyebrow;
   margin: 0;
@@ -59,6 +62,7 @@
   opacity: 0.6;
 }
 
+/* Large TravlBuds wordmark. */
 .wordmark {
   grid-area: wordmark;
   margin: 0;
@@ -77,6 +81,7 @@
   color: var(--muted);
 }
 
+/* Settings and Log out row in the masthead. */
 .actions {
   grid-area: actions;
   display: flex;
@@ -99,6 +104,7 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
+/* Underline that draws in on hover. */
 .textButton::after {
   content: '';
   position: absolute;
@@ -114,28 +120,34 @@
 
 .textButton:hover::after,
 .textButton:focus-visible::after,
+/* Keeps the underline while the settings panel is open. */
 .textButton[aria-expanded='true']::after {
   transform: scaleX(1);
 }
 
+/* Keyboard focus style for text buttons. */
 .textButton:focus-visible {
   outline: none;
   color: var(--mark);
 }
 
+/* Disabled text button. */
 .textButton:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
+/* No underline on a disabled text button. */
 .textButton:disabled::after {
   display: none;
 }
 
+/* Warning color for destructive text buttons (Log out, Reject, Remove). */
 .danger {
   color: var(--danger);
 }
 
+/* Keyboard focus style for destructive buttons. */
 .danger:focus-visible {
   color: var(--danger);
 }
@@ -146,6 +158,7 @@
   margin: 0;
 }
 
+/* One labelled row in the settings panel. */
 .settingRow {
   display: grid;
   grid-template-columns: var(--rail) minmax(0, 1fr);
@@ -155,12 +168,14 @@
   border-bottom: 1px solid var(--rule);
 }
 
+/* Group of toggle buttons (settings, DaySelector, VoteSpotMap). */
 .options {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.75rem;
 }
 
+/* A toggle button; its pressed state comes from aria-pressed. */
 .option {
   position: relative;
   padding: 0;
@@ -176,6 +191,7 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
+/* Underline under an option button. */
 .option::after {
   content: '';
   position: absolute;
@@ -190,6 +206,7 @@
 }
 
 .option:hover,
+/* Keyboard focus style for options. */
 .option:focus-visible {
   opacity: 1;
   color: var(--ink);
@@ -197,15 +214,18 @@
 
 .option:hover::after,
 .option:focus-visible::after,
+/* Underline for the pressed option. */
 .option[aria-pressed='true']::after {
   transform: scaleX(1);
 }
 
+/* Style for the pressed option. */
 .option[aria-pressed='true'] {
   opacity: 1;
   color: var(--ink);
 }
 
+/* Keyboard focus style for options. */
 .option:focus-visible {
   outline: none;
   color: var(--mark);
@@ -223,16 +243,19 @@
   align-items: start;
 }
 
+/* First child of the stack (the new-trip form). */
 .stack > *:first-child {
   --rail: 4.5rem;
   padding-right: 2.5rem;
   border-right: 1px solid var(--border-clean);
 }
 
+/* Hides the divider on wide screens, where the first column right border separates the sections. */
 .stack > .divider {
   display: none;
 }
 
+/* Narrow screens: stack sections vertically. */
 @media (max-width: 860px) {
   .stack {
     grid-template-columns: minmax(0, 1fr);
@@ -249,6 +272,7 @@
   }
 }
 
+/* Hairline rule between sections. */
 .divider {
   width: 100%;
   margin: 0;
@@ -264,6 +288,7 @@
   align-items: start;
 }
 
+/* Very narrow screens: section becomes a single column. */
 @media (max-width: 520px) {
   .section,
   .settingRow {
@@ -272,6 +297,7 @@
   }
 }
 
+/* Left caption rail of a section. */
 .rail {
   display: flex;
   flex-direction: column;
@@ -279,6 +305,7 @@
   padding-top: 0.5rem;
 }
 
+/* Tiny uppercase caption used across components. */
 .caption {
   font-family: var(--mono);
   font-size: 10px;
@@ -290,6 +317,7 @@
   opacity: 0.55;
 }
 
+/* Section heading. */
 .sectionTitle {
   margin: 0;
   font-family: var(--heading);
@@ -309,18 +337,21 @@
   margin-top: 2.25rem;
 }
 
+/* Side-by-side fields (for example start and end dates). */
 .fieldRow {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 1.5rem;
 }
 
+/* A label plus its input. */
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
+/* Small uppercase field label. */
 .label {
   font-family: var(--mono);
   font-size: 10px;
@@ -354,26 +385,31 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
+/* Placeholder text color for inputs. */
 .field .input::placeholder {
   color: var(--muted);
   opacity: 0.38;
 }
 
+/* Input hover state. */
 .field .input:hover {
   border-bottom-color: var(--muted);
 }
 
+/* Input focus state. */
 .field .input:focus {
   border-bottom-color: var(--ink);
   box-shadow: none;
 }
 
+/* Highlights the label while its input is focused. */
 .field:focus-within .label {
   opacity: 1;
   letter-spacing: 0.24em;
   color: var(--ink);
 }
 
+/* Primary submit button (TripForm, ActivityPlanner, RestaurantVote, access request). */
 .submit {
   display: inline-flex;
   align-items: center;
@@ -395,21 +431,25 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
+/* Submit button hover (only when enabled). */
 .submit:hover:not(:disabled) {
   background: var(--mark);
   letter-spacing: 0.035em;
 }
 
+/* Submit button keyboard focus ring. */
 .submit:focus-visible {
   outline: 2px solid var(--mark);
   outline-offset: 3px;
 }
 
+/* Disabled submit button. */
 .submit:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
+/* Trailing arrow in buttons and trip rows. */
 .arrow {
   font-family: var(--mono);
   font-size: 0.9375rem;
@@ -418,6 +458,7 @@
 
 .submit:hover:not(:disabled) .arrow,
 .tripRow:hover .arrow,
+/* Arrow reacts when a trip row has keyboard focus. */
 .tripRow:focus-visible .arrow {
   transform: translateX(4px);
 }
@@ -431,6 +472,7 @@
   border-top: 1px solid var(--rule);
 }
 
+/* Clickable row for one trip in TripList. */
 .tripRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -449,10 +491,12 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
+/* Keyboard focus style for trip rows. */
 .tripRow:focus-visible {
   outline: none;
 }
 
+/* Trip name. */
 .tripName {
   display: block;
   font-size: 1.5rem;
@@ -463,11 +507,13 @@
 }
 
 .tripRow:hover .tripName,
+/* Trip name reacts when its row has keyboard focus. */
 .tripRow:focus-visible .tripName {
   letter-spacing: -0.03em;
   color: var(--mark);
 }
 
+/* Trip destination under the name. */
 .tripDestination {
   display: block;
   margin-top: 0.55rem;
@@ -476,6 +522,7 @@
   color: var(--muted);
 }
 
+/* Right side of a trip row: badge and dates. */
 .tripMeta {
   display: flex;
   flex-direction: column;
@@ -483,6 +530,7 @@
   gap: 0.4rem;
 }
 
+/* Trip start and end dates. */
 .tripDates {
   font-family: var(--mono);
   font-size: 10px;
@@ -507,17 +555,20 @@
   opacity: 0.5;
 }
 
+/* Accent styling for trips shared with the user. */
 .tripBadgeShared {
   color: var(--mark);
   opacity: 1;
 }
 
+/* Empty state wrapper when there are no trips. */
 .empty {
   margin-top: 2.25rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--rule);
 }
 
+/* Empty state title. */
 .emptyTitle {
   margin: 0;
   font-size: clamp(1.75rem, 5vw, 2.375rem);
@@ -527,6 +578,7 @@
   color: var(--muted);
 }
 
+/* Empty state note. */
 .emptyNote {
   margin: 0.9rem 0 0;
   max-width: 34ch;
@@ -549,10 +601,12 @@
   color: var(--muted);
 }
 
+/* Footer label text. */
 .footerLabel {
   opacity: 0.5;
 }
 
+/* Support email link. */
 .footerLink {
   position: relative;
   margin-left: 0.6rem;
@@ -561,6 +615,7 @@
   transition: all 0.2s var(--ease-out-expo);
 }
 
+/* Underline under the footer link. */
 .footerLink::after {
   content: '';
   position: absolute;
@@ -575,15 +630,18 @@
 }
 
 .footerLink:hover::after,
+/* Underline on keyboard focus. */
 .footerLink:focus-visible::after {
   transform: scaleX(1);
 }
 
+/* Keyboard focus style for the footer link. */
 .footerLink:focus-visible {
   outline: none;
   color: var(--mark);
 }
 
+/* Disable motion for users who prefer reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   .shell *,
   .shell *::after {

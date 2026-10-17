@@ -1,9 +1,12 @@
+// Services package: business logic shared by controllers.
 package com.travlbuds.api.services;
 
+// User entity holding the token hash/expiry, and UserRepository used to save and look it up.
 import com.travlbuds.api.models.User;
 import com.travlbuds.api.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
+// JDK crypto, encoding and time utilities for token generation and hashing.
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,22 +26,27 @@ import java.util.Optional;
 @Service
 public class PasswordResetService {
 
+    // Token size (32 random bytes) and lifetime (30 minutes).
     private static final int TOKEN_BYTES = 32;
     private static final long TOKEN_TTL_MINUTES = 30;
 
+    // UserRepository persists the hash on User; SecureRandom generates the token bytes.
     private final UserRepository userRepository;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    // Constructor injection of UserRepository.
     public PasswordResetService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     /** Generates a new reset token for the user, replacing any existing one, and returns the raw token. */
     public String issueResetToken(User user) {
+        // Random token, url-safe base64 (this raw value is what gets emailed).
         byte[] randomBytes = new byte[TOKEN_BYTES];
         secureRandom.nextBytes(randomBytes);
         String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
 
+        // Store only the hash and expiry on the User row (overwrites any earlier token).
         user.setResetTokenHash(hash(rawToken));
         user.setResetTokenExpiresAt(Instant.now().plusSeconds(TOKEN_TTL_MINUTES * 60));
         userRepository.save(user);
@@ -48,14 +56,17 @@ public class PasswordResetService {
 
     /** Looks up the user for a raw token, invalidating it, or empty if the token is missing/expired. */
     public Optional<User> consumeToken(String rawToken) {
+        // Reject empty input early.
         if (rawToken == null || rawToken.isBlank()) {
             return Optional.empty();
         }
 
+        // Find the user by hashed token and require an unexpired expiry.
         Optional<User> match = userRepository.findByResetTokenHash(hash(rawToken))
                 .filter(user -> user.getResetTokenExpiresAt() != null
                         && user.getResetTokenExpiresAt().isAfter(Instant.now()));
 
+        // Single-use: clear the token fields on the entity (the caller is responsible for saving).
         match.ifPresent(user -> {
             user.setResetTokenHash(null);
             user.setResetTokenExpiresAt(null);
@@ -64,6 +75,7 @@ public class PasswordResetService {
         return match;
     }
 
+    // SHA-256 of the value as hex; the form in which tokens are stored.
     private String hash(String value) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

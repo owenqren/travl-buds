@@ -6,6 +6,7 @@
  * so light/dark inherit the rest of the app.
  */
 
+/* Page grid: 7/5 columns (masthead | panel), local color tokens, left-aligned text (overrides the #root centering from index.css). */
 .page {
   --rule: var(--border);
   --ink: var(--text-h);
@@ -24,12 +25,14 @@
   padding: clamp(3rem, 9vh, 8rem) clamp(1.5rem, 5vw, 5rem) clamp(4rem, 10vh, 9rem);
 }
 
+/* Brighter danger color in dark mode. */
 @media (prefers-color-scheme: dark) {
   .page {
     --danger: #ff7a95;
   }
 }
 
+/* Narrow screens: collapse to a single column. */
 @media (max-width: 900px) {
   .page {
     grid-template-columns: minmax(0, 1fr);
@@ -40,6 +43,7 @@
 
 /* ---------------------------------------------------------------- masthead */
 
+/* Left column: stacked eyebrow, headline, lede and capability index. */
 .masthead {
   display: flex;
   flex-direction: column;
@@ -47,6 +51,7 @@
   max-width: 34ch;
 }
 
+/* Narrow screens: masthead uses the full width. */
 @media (max-width: 900px) {
   .masthead {
     max-width: none;
@@ -54,6 +59,7 @@
   }
 }
 
+/* Small uppercase mono label above the headline (AuthLanding and ResetPasswordPage). */
 .eyebrow {
   display: flex;
   align-items: center;
@@ -69,6 +75,7 @@
   opacity: 0.62;
 }
 
+/* Hairline that fills the space after the eyebrow text. */
 .eyebrow::after {
   content: '';
   flex: 1;
@@ -76,6 +83,7 @@
   background: var(--rule);
 }
 
+/* Oversized, tight-tracked headline. */
 .display {
   margin: 0;
   font-family: var(--heading);
@@ -95,10 +103,12 @@
   color: var(--muted);
 }
 
+/* Accent-colored highlighted words inside the headline. */
 .displayMark {
   color: var(--mark);
 }
 
+/* Intro paragraph under the headline. */
 .lede {
   margin: 0;
   max-width: 42ch;
@@ -116,6 +126,7 @@
   border-top: 1px solid var(--rule);
 }
 
+/* One row of the capability index: number column plus text. */
 .indexItem {
   display: grid;
   grid-template-columns: 3.25rem 1fr;
@@ -125,6 +136,7 @@
   border-bottom: 1px solid var(--rule);
 }
 
+/* Faint mono row number. */
 .indexNum {
   font-family: var(--mono);
   font-size: 11px;
@@ -133,6 +145,7 @@
   opacity: 0.5;
 }
 
+/* Bold row title. */
 .indexLabel {
   font-size: 0.95rem;
   font-weight: 600;
@@ -140,6 +153,7 @@
   color: var(--ink);
 }
 
+/* Smaller description under the row title. */
 .indexNote {
   display: block;
   margin-top: 0.25rem;
@@ -160,6 +174,7 @@
   border-left: 1px solid var(--rule);
 }
 
+/* Narrow screens: panel spacing adjustments. */
 @media (max-width: 900px) {
   .panel {
     padding-top: 0;
@@ -170,6 +185,7 @@
   }
 }
 
+/* Panel header row holding the title and the field count. */
 .panelHead {
   display: flex;
   align-items: baseline;
@@ -178,6 +194,7 @@
   margin-bottom: clamp(2rem, 5vh, 3.25rem);
 }
 
+/* Panel heading (Log in, Create account, Reset password). */
 .panelTitle {
   margin: 0;
   font-family: var(--heading);
@@ -188,6 +205,7 @@
   color: var(--ink);
 }
 
+/* Small uppercase field-count label next to the panel title. */
 .panelStep {
   font-family: var(--mono);
   font-size: 11px;
@@ -198,18 +216,21 @@
   white-space: nowrap;
 }
 
+/* Vertical stack of form fields. */
 .form {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
 }
 
+/* A label plus its input. */
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
+/* Small uppercase field label. */
 .label {
   font-family: var(--mono);
   font-size: 10.5px;
@@ -239,19 +260,23 @@
   transition: border-color 200ms ease-out;
 }
 
+/* Placeholder text color for inputs. */
 .input::placeholder {
   color: var(--muted);
   opacity: 0.38;
 }
 
+/* Input hover state. */
 .input:hover {
   border-bottom-color: var(--muted);
 }
 
+/* Input focus state. */
 .input:focus {
   border-bottom-color: var(--ink);
 }
 
+/* Highlights the label while its input is focused. */
 .field:focus-within .label {
   opacity: 1;
   letter-spacing: 0.22em;
@@ -269,6 +294,7 @@
   color: var(--danger);
 }
 
+/* Row holding the submit button and switch link. */
 .actions {
   display: flex;
   flex-direction: column;
@@ -276,6 +302,7 @@
   margin-top: 0.75rem;
 }
 
+/* Primary submit button (text plus arrow). */
 .submit {
   --shift: 0;
 
@@ -300,31 +327,37 @@
     letter-spacing 200ms ease-out;
 }
 
+/* Submit button hover (only when enabled). */
 .submit:hover:not(:disabled) {
   background: var(--mark);
   letter-spacing: 0.035em;
 }
 
+/* Submit button keyboard focus ring. */
 .submit:focus-visible {
   outline: 2px solid var(--mark);
   outline-offset: 3px;
 }
 
+/* Submit button disabled look while loading. */
 .submit:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
+/* Arrow inside the submit button. */
 .submitArrow {
   font-family: var(--mono);
   font-size: 0.9375rem;
   transition: transform 200ms ease-out;
 }
 
+/* Arrow nudges on submit hover. */
 .submit:hover:not(:disabled) .submitArrow {
   transform: translateX(4px);
 }
 
+/* Row with the login/register prompt and the switch link. */
 .switchRow {
   display: flex;
   align-items: baseline;
@@ -348,6 +381,7 @@
   transition: color 200ms ease-out;
 }
 
+/* Underline that draws in on hover. */
 .switch::after {
   content: '';
   position: absolute;
@@ -362,15 +396,18 @@
 }
 
 .switch:hover::after,
+/* Underline shown on keyboard focus. */
 .switch:focus-visible::after {
   transform: scaleX(1);
 }
 
+/* Focus outline for the switch link. */
 .switch:focus-visible {
   outline: none;
   color: var(--mark);
 }
 
+/* Small muted note under the panel. */
 .footnote {
   margin-top: clamp(3rem, 8vh, 5rem);
   padding-top: 1.1rem;
@@ -383,6 +420,7 @@
   opacity: 0.5;
 }
 
+/* Disable motion for users who prefer reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   .page *,
   .page *::after {

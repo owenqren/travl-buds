@@ -1,6 +1,8 @@
+// dash = shared dashboard styles, styles = trip page styles.
 import dash from './Dashboard.module.css';
 import styles from './TripPage.module.css';
 
+// Maps a member status to its CSS class (anything other than APPROVED/REJECTED looks pending).
 function statusClass(status) {
     if (status === 'APPROVED') return styles.statusApproved;
     if (status === 'REJECTED') return styles.statusRejected;
@@ -11,6 +13,7 @@ function statusClass(status) {
  * The "Trip access" section: the member list with owner-only moderation
  * actions, and the add-by-email form any member can use.
  */
+// Props come from TripDetails: members, owner flag, email input state and the add/approve/reject/remove handlers.
 export default function TripMembers({
     members,
     isOwner,
@@ -24,6 +27,7 @@ export default function TripMembers({
 }) {
     return (
         <section className={dash.section}>
+            {/* Caption rail. */}
             <div className={dash.rail}>
                 <span className={dash.caption}>Group</span>
             </div>
@@ -31,6 +35,7 @@ export default function TripMembers({
             <div>
                 <h2 className={dash.sectionTitle}>Trip access</h2>
 
+                {/* Member list: email and status for everyone. */}
                 {members.length > 0 && (
                     <ul className={`${styles.rows} ${styles.rowsFirst}`}>
                         {members.map(m => (
@@ -39,8 +44,10 @@ export default function TripMembers({
                                     <span className={styles.memberEmail}>{m.email}</span>
                                     <span className={`${styles.status} ${statusClass(m.status)}`}>{m.status}</span>
                                 </span>
+                                {/* Owner-only actions. */}
                                 {isOwner && (
                                     <span className={styles.memberActions}>
+                                        {/* Approve/Reject only for PENDING members. */}
                                         {m.status === 'PENDING' && (
                                             <>
                                                 <button
@@ -59,6 +66,7 @@ export default function TripMembers({
                                                 </button>
                                             </>
                                         )}
+                                        {/* Remove is available for every member. */}
                                         <button
                                             type="button"
                                             className={`${dash.textButton} ${dash.danger}`}
@@ -73,6 +81,7 @@ export default function TripMembers({
                     </ul>
                 )}
 
+                {/* Add-by-email form; Enter or the button calls onAddMember. */}
                 <div className={styles.inlineForm}>
                     <label className={`${dash.field} ${styles.grow}`}>
                         <span className={dash.label}>Add by email</span>
@@ -94,6 +103,7 @@ export default function TripMembers({
                         Add →
                     </button>
                 </div>
+                {/* Feedback message from the last add attempt. */}
                 {memberStatus && (
                     <p className={`${styles.note} ${styles.noteTop}`}>{memberStatus}</p>
                 )}

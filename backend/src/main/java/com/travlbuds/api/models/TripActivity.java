@@ -1,11 +1,14 @@
+// Model package: JPA entities mapped to PostgreSQL tables.
 package com.travlbuds.api.models;
 
+// JPA annotations, collection types, Jackson's @JsonIgnore (stops JSON recursion) and LocalTime for the visit time.
 import jakarta.persistence.*;
 import java.util.HashSet;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Set;
 import java.time.LocalTime;
 
+// Maps this class to the "activities" table.
 @Entity
 @Table(name = "activities")
 
@@ -18,32 +21,39 @@ import java.time.LocalTime;
 
 public class TripActivity {
 
+    // Auto-increment primary key; used as activityId in the join/leave endpoints.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Plain columns filled by TripActivityController.
     private String name;
     // E.g., "Museum", "Park", "Historical Site"
     private String category;
     private String address;
     private LocalTime visitTime;
 
+    // Parent day (FK trip_day_id); lazy-loaded and hidden from JSON to avoid loops and extra queries.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_day_id")
     @JsonIgnore
     private TripDay tripDay;
 
+    // User who created the activity (FK user_id), set from the authenticated caller.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User suggestedBy;
 
+    // Opt-in list stored in the activity_interests join table; changed by the join/leave endpoints.
     @ManyToMany
     @JoinTable(name = "activity_interests", joinColumns = @JoinColumn(name = "activity_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> interestedUsers = new HashSet<>();
 
+    // No-arg constructor required by JPA/Jackson.
     public TripActivity() {
     }
 
+    // Convenience constructor: sets all descriptive fields plus the parent day and creator.
     public TripActivity(String name, String category, String address, LocalTime visitTime, TripDay tripDay, User suggestedBy) {
         this.name = name;
         this.category = category;
@@ -53,6 +63,7 @@ public class TripActivity {
         this.suggestedBy = suggestedBy;
     }
 
+    // Getters/setters: used by Jackson and TripActivityController; each touches only its own field.
     public Long getId() {
         return id;
     }

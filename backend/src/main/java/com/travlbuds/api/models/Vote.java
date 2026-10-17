@@ -1,7 +1,10 @@
+// Model package: JPA entities mapped to PostgreSQL tables.
 package com.travlbuds.api.models;
 
+// JPA annotations.
 import jakarta.persistence.*;
 
+// Maps this class to the "votes" table.
 @Entity
 @Table(name = "votes")
 
@@ -13,16 +16,19 @@ import jakarta.persistence.*;
  */
 
 public class Vote {
+    // Auto-increment primary key.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // A vote belongs to ONE user
+    // FK user_id -> users; VoteRepository queries on it.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
     // A vote belongs to ONE destination
+    // FK voted_location_id -> voted_locations; its tripDay drives the one-vote-per-day check.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voted_location_id")
     private VotedLocation votedLocation;
@@ -39,10 +45,10 @@ public class Vote {
     // --- Getters and Setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
+
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
-    
+
     public VotedLocation getVotedLocation() { return votedLocation; }
     public void setVotedLocation(VotedLocation votedLocation) { this.votedLocation = votedLocation; }
 }

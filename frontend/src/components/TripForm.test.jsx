@@ -1,18 +1,23 @@
+// vitest helpers, Testing Library render/query/event utilities, the component under test and authFetch (mocked below).
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TripForm from './TripForm';
 import { authFetch } from '../utils/authFetch';
 
+// Replace authFetch so no real network call happens; tests assert on the mock.
 vi.mock('../utils/authFetch', () => ({
     authFetch: vi.fn(),
 }));
 
+// Tests for TripForm.
 describe('TripForm', () => {
+    // Reset the authFetch mock before each test.
     beforeEach(() => {
         authFetch.mockReset();
     });
 
+    // Submit stays disabled until name, destination and both dates are filled.
     it('disables submit until every field is filled', async () => {
         const user = userEvent.setup();
         render(<TripForm onTripAdded={vi.fn()} />);
@@ -40,6 +45,7 @@ describe('TripForm', () => {
         expect(authFetch).not.toHaveBeenCalled();
     });
 
+    // Happy path: posts the trip body to /api/trips, calls onTripAdded with the response and clears the form.
     it('submits the trip and resets the form on success', async () => {
         const user = userEvent.setup();
         const onTripAdded = vi.fn();

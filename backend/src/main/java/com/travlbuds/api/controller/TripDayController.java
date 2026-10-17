@@ -1,9 +1,12 @@
+// Controller package: REST endpoints.
 package com.travlbuds.api.controller;
 
+// Spring web and transaction types.
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+// Entities, repositories and access service used below.
 import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.TripDay;
 import com.travlbuds.api.models.User;
@@ -13,6 +16,7 @@ import com.travlbuds.api.services.TripAccessService;
 
 import org.springframework.security.core.Authentication;
 
+// Exposes /api/trips/{tripId}/days.
 @RestController
 @RequestMapping("/api/trips")
 
@@ -25,10 +29,12 @@ import org.springframework.security.core.Authentication;
 
 public class TripDayController {
 
+    // Collaborators injected by the constructor.
     private final TripDayRepository tripDayRepo;
     private final TripRepository tripRepo;
     private final TripAccessService tripAccessService;
 
+    // Constructor injection.
     public TripDayController(TripDayRepository tripDayRepo, TripRepository tripRepo,
             TripAccessService tripAccessService) {
         this.tripDayRepo = tripDayRepo;
@@ -37,9 +43,11 @@ public class TripDayController {
     }
 
     // GET ALL DAYS FOR A TRIP
+    // Lists days in date order; @Transactional keeps the session open while the days are serialized.
     @Transactional
     @GetMapping("/{tripId}/days")
     public ResponseEntity<?> getDays(@PathVariable Long tripId, Authentication auth) {
+        // Access check using the caller's email from the JWT principal.
         String email = ((User) auth.getPrincipal()).getEmail();
         if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
@@ -48,13 +56,16 @@ public class TripDayController {
     }
 
     // ADD A DAY TO A TRIP
+    // Creates a day under the trip; the parent trip is set server-side.
     @PostMapping("/{tripId}/days")
     public ResponseEntity<?> addDay(@PathVariable Long tripId,
             @RequestBody TripDay dayRequest, Authentication auth) {
+        // Access check first.
         String email = ((User) auth.getPrincipal()).getEmail();
         if (!tripAccessService.canAccess(tripId, email)) {
             return ResponseEntity.status(403).body("Access denied.");
         }
+        // Load the parent trip (404 if missing), attach it and save.
         Trip trip = tripRepo.findById(tripId).orElse(null);
         if (trip == null)
             return ResponseEntity.status(404).body("Trip not found.");

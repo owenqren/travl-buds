@@ -1,3 +1,4 @@
+// React hooks, router navigation and the shared auth page styles.
 import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AuthLanding.module.css';
@@ -14,39 +15,47 @@ import styles from './AuthLanding.module.css';
  * @param {(authResponse: object) => void} onLogin Called with the auth payload once the password is reset.
  */
 export default function ResetPasswordPage({ onLogin }) {
+    // navigate redirects after success; fieldId links labels to inputs; token is read from the ?token= query param of the emailed link.
     const navigate = useNavigate();
     const fieldId = useId();
     const token = new URLSearchParams(window.location.search).get('token');
 
+    // Form state: both password fields, an error message and a submit-in-progress flag.
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Validates the two passwords match, then posts the token and new password to the backend.
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
+        // Mismatch: show an error and stop before any request.
         if (newPassword !== confirmPassword) {
             setError('Passwords do not match.');
             return;
         }
 
+        // Disable the submit button while the request runs.
         setLoading(true);
 
         try {
+            // POST to /api/auth/reset-password (plain fetch: the user has no JWT yet).
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, newPassword })
             });
 
+            // Failure bodies are plain strings; success is an AuthResponse (token + user).
             const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(typeof data === 'string' ? data : 'Could not reset your password.');
             }
 
+            // Success: log the user in through App.jsx's handleLogin, then go to the dashboard route.
             onLogin(data);
             navigate('/', { replace: true });
         } catch (err) {
@@ -56,8 +65,10 @@ export default function ResetPasswordPage({ onLogin }) {
         }
     };
 
+    // Page layout mirrors AuthLanding: masthead on the left, panel on the right.
     return (
         <main className={styles.page}>
+            {/* Masthead headline. */}
             <section className={styles.masthead}>
                 <p className={styles.eyebrow}>TravlBuds — Collaborative Planning</p>
                 <h1 className={styles.display}>
@@ -68,6 +79,7 @@ export default function ResetPasswordPage({ onLogin }) {
                 </h1>
             </section>
 
+            {/* Panel: shows an invalid-link message without a token, otherwise the reset form. */}
             <section className={styles.panel}>
                 {!token ? (
                     <>
@@ -85,6 +97,7 @@ export default function ResetPasswordPage({ onLogin }) {
                             <span className={styles.panelStep}>2 fields</span>
                         </header>
 
+                        {/* Reset form; submitting calls handleSubmit. */}
                         <form className={styles.form} onSubmit={handleSubmit} noValidate={false}>
                             <div className={styles.field}>
                                 <label className={styles.label} htmlFor={`${fieldId}-new-password`}>
@@ -118,12 +131,14 @@ export default function ResetPasswordPage({ onLogin }) {
                                 />
                             </div>
 
+                            {/* Inline error (mismatch or backend failure). */}
                             {error && (
                                 <p className={styles.error} role="alert">
                                     {error}
                                 </p>
                             )}
 
+                            {/* Submit button, disabled and relabelled while loading. */}
                             <div className={styles.actions}>
                                 <button className={styles.submit} type="submit" disabled={loading}>
                                     <span>{loading ? 'Working…' : 'Set new password'}</span>

@@ -1,5 +1,7 @@
+// Tests for TripMemberController's owner-only and access-gated endpoints.
 package com.travlbuds.api.controller;
 
+// Classes under test and the collaborators that get mocked.
 import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.TripMember;
 import com.travlbuds.api.models.User;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import java.util.Map;
 import java.util.Optional;
 
+// JUnit assertions and Mockito helpers.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -24,9 +27,11 @@ import static org.mockito.Mockito.when;
 
 class TripMemberControllerTest {
 
+    // Two trip ids: the one the owner controls and a different trip used for cross-trip tests.
     private static final Long TRIP_ID = 10L;
     private static final Long OTHER_TRIP_ID = 20L;
 
+    // Mocks, the controller under test, and the owner caller.
     private TripMemberRepository memberRepo;
     private TripRepository tripRepo;
     private TripAccessService accessService;
@@ -35,6 +40,7 @@ class TripMemberControllerTest {
     private User owner;
     private Authentication ownerAuth;
 
+    // Before each test: builds the controller, an owner principal, and a Trip owned by that user.
     @BeforeEach
     void setUp() {
         memberRepo = mock(TripMemberRepository.class);
@@ -52,6 +58,7 @@ class TripMemberControllerTest {
         when(tripRepo.findById(TRIP_ID)).thenReturn(Optional.of(trip));
     }
 
+    // Approving a member that belongs to another trip: 404, status unchanged, nothing saved.
     @Test
     void approveRejectsMemberFromAnotherTrip() {
         TripMember foreignMember = new TripMember();
@@ -66,6 +73,7 @@ class TripMemberControllerTest {
         verify(memberRepo, never()).save(any());
     }
 
+    // Same cross-trip guard for reject.
     @Test
     void rejectRejectsMemberFromAnotherTrip() {
         TripMember foreignMember = new TripMember();
@@ -80,6 +88,7 @@ class TripMemberControllerTest {
         verify(memberRepo, never()).save(any());
     }
 
+    // Happy path: a member of the same trip becomes APPROVED.
     @Test
     void approveWorksForMemberOfTheSameTrip() {
         TripMember member = new TripMember();
@@ -94,6 +103,7 @@ class TripMemberControllerTest {
         assertEquals("APPROVED", member.getStatus());
     }
 
+    // A caller without access (canAccess false) gets 403 and nothing is saved.
     @Test
     void addMemberIsForbiddenWithoutTripAccess() {
         Authentication outsiderAuth = new UsernamePasswordAuthenticationToken(
@@ -106,6 +116,7 @@ class TripMemberControllerTest {
         verify(memberRepo, never()).save(any());
     }
 
+    // The email is trimmed/lower-cased before the duplicate check, so a variant of an existing email gets 400.
     @Test
     void addMemberNormalizesEmailBeforeCheckingForDuplicates() {
         when(accessService.canAccess(TRIP_ID, "owner@example.com")).thenReturn(true);
@@ -117,6 +128,7 @@ class TripMemberControllerTest {
         verify(memberRepo, never()).save(any());
     }
 
+    // A caller without access gets 403 and the member list is never queried.
     @Test
     void getMembersIsForbiddenWithoutTripAccess() {
         Authentication outsiderAuth = new UsernamePasswordAuthenticationToken(

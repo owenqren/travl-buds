@@ -1,7 +1,9 @@
+// dash = shared dashboard styles, styles = trip page styles.
 import dash from './Dashboard.module.css';
 import styles from './TripPage.module.css';
 
 /** The "Vote on a restaurant" section: blind-until-voted results, and a form to suggest a spot. */
+// Presentational: voting state and handlers come from TripDetails.
 export default function RestaurantVote({
     selectedDay,
     hasVoted,
@@ -15,10 +17,13 @@ export default function RestaurantVote({
     setNewLocationVisitTime,
     onAddLocation,
 }) {
+    // Truthy only when name, address and time are filled in.
     const spotValid = newLocation.trim() && newLocationAddress.trim() && newLocationVisitTime;
 
+    // Layout: caption rail with the selected day, then the content column.
     return (
         <section className={dash.section}>
+            {/* Caption rail. */}
             <div className={dash.rail}>
                 <span className={dash.caption}>Vote</span>
                 {selectedDay && <span className={dash.caption}>{selectedDay.date}</span>}
@@ -26,10 +31,12 @@ export default function RestaurantVote({
 
             <div>
                 <h2 className={dash.sectionTitle}>Vote on a restaurant</h2>
+                {/* Blind-vote hint: counts stay hidden until the user has voted. */}
                 {!hasVoted && (
                     <p className={styles.hint}>Cast your vote to see the results!</p>
                 )}
 
+                {/* Candidate spots for the day. */}
                 <p className={styles.subhead}>Options</p>
                 {votedLocations.length === 0 ? (
                     <p className={styles.note}>No locations suggested yet. Add one below!</p>
@@ -46,6 +53,7 @@ export default function RestaurantVote({
                                     )}
                                 </div>
                                 <div className={styles.itemSide}>
+                                    {/* After voting show the count (the backend only sends it then); before voting show a Vote button. */}
                                     {hasVoted && (
                                         <span className={styles.itemCount}>
                                             {loc.voteCount} vote{loc.voteCount !== 1 ? 's' : ''}
@@ -68,6 +76,7 @@ export default function RestaurantVote({
 
                 {/* Voting suggest a spot */}
                 <p className={styles.subhead}>Suggest a spot</p>
+                {/* Suggest-a-spot form; fields update the newLocation* state in TripDetails and Enter calls onAddLocation. */}
                 <div className={styles.formStack}>
                     <label className={dash.field}>
                         <span className={dash.label}>Name</span>
@@ -104,6 +113,7 @@ export default function RestaurantVote({
                             onKeyDown={e => { if (e.key === 'Enter') onAddLocation(); }}
                         />
                     </label>
+                    {/* Submit stays disabled until spotValid. */}
                     <button
                         type="button"
                         className={dash.submit}

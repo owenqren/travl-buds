@@ -1,11 +1,14 @@
+// Model package: JPA entities mapped to PostgreSQL tables.
 package com.travlbuds.api.models;
 
+// JPA annotations, Jackson's @JsonIgnore, collection types and LocalTime.
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalTime;
 
+// Maps this class to the "voted_locations" table.
 @Entity
 @Table(name = "voted_locations")
 
@@ -16,30 +19,37 @@ import java.time.LocalTime;
  */
 
 public class VotedLocation {
+    // Auto-increment primary key; used as votedLocationId when voting.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Plain columns filled by VotingController.
     private String name;
     private String address;
     private LocalTime visitTime;
 
+    // Parent day (FK trip_day_id); lazy and hidden from JSON.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_day_id")
     @JsonIgnore
     private TripDay tripDay;
 
+    // Votes cast for this spot (mappedBy Vote.votedLocation); VotingController counts them but hides the count until the caller has voted.
     @OneToMany(mappedBy = "votedLocation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes = new ArrayList<>();
 
+    // No-arg constructor required by JPA/Jackson.
     public VotedLocation() {
     }
 
+    // Convenience constructor: sets the name and parent day.
     public VotedLocation(String name, TripDay tripDay) {
         this.name = name;
         this.tripDay = tripDay;
     }
 
+    // Getters/setters: used by Jackson and VotingController; each touches only its own field.
     public Long getId() {
         return id;
     }
