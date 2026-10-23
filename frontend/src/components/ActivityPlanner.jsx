@@ -1,3 +1,4 @@
+// dash = shared dashboard styles, styles = trip page styles.
 import dash from './Dashboard.module.css';
 import styles from './TripPage.module.css';
 
@@ -5,6 +6,7 @@ import styles from './TripPage.module.css';
  * The "Activity ideas" section: the AI planning chat plus the list of
  * activities for the selected day and the form to add one.
  */
+// Presentational: all state and handlers come from TripDetails (AI chat, activities list, new-activity form).
 export default function ActivityPlanner({
     selectedDay,
     aiMessages,
@@ -19,10 +21,13 @@ export default function ActivityPlanner({
     onAddActivity,
     onJoinActivity,
 }) {
+    // Truthy only when name, address and visit time are filled in.
     const activityValid = newActivity.name.trim() && newActivity.address.trim() && newActivity.visitTime;
 
+    // Layout: caption rail with the selected day, then the content column.
     return (
         <section className={dash.section}>
+            {/* Caption rail. */}
             <div className={dash.rail}>
                 <span className={dash.caption}>Activities</span>
                 {selectedDay && <span className={dash.caption}>{selectedDay.date}</span>}
@@ -31,8 +36,12 @@ export default function ActivityPlanner({
             <div>
                 <h2 className={dash.sectionTitle}>Activity ideas</h2>
 
+                {/* AI assistant chat log (messages from POST /api/ai/suggestions, kept in TripDetails). */}
                 <p className={styles.subhead}>Assistant</p>
                 <div className={styles.chatLog}>
+                    {/* Empty hint or one bubble per message, styled by role. */}
+                    {/* How: renders a hint or maps each message to a bubble; key={index} is acceptable here because
+                        messages are only ever appended. */}
                     {aiMessages.length === 0 ? (
                         <p className={styles.note}>
                             Ask for trip ideas or use the suggestion button.
@@ -49,9 +58,12 @@ export default function ActivityPlanner({
                     )}
                 </div>
 
+                {/* Free-form prompt: Enter or Send calls onSendAiMessage and clears the input. */}
                 <div className={styles.inlineForm}>
                     <label className={`${dash.field} ${styles.grow}`}>
                         <span className={dash.label}>Ask the AI</span>
+                        {/* How: there is no form element, so Enter is handled on the input itself: it sends the current
+                            text through onSendAiMessage and clears the field. */}
                         <input
                             type="text"
                             className={dash.input}
@@ -79,6 +91,7 @@ export default function ActivityPlanner({
                     </button>
                 </div>
 
+                {/* One-click suggestion request for the selected day. */}
                 <button
                     type="button"
                     className={`${dash.submit} ${styles.suggest}`}
@@ -89,7 +102,10 @@ export default function ActivityPlanner({
                     <span className={dash.arrow} aria-hidden="true">→</span>
                 </button>
 
+                {/* Activities already on the plan, with a Join button and interested count (activity.interestedUsers). */}
                 <p className={styles.subhead}>On the plan</p>
+                {/* How: the list comes from the activities array in TripDetails; interestedUsers?.length || 0 guards
+                    against a missing array in the backend JSON. */}
                 {activities.length === 0 ? (
                     <p className={styles.note}>No activities yet. Add one below!</p>
                 ) : (
@@ -124,6 +140,7 @@ export default function ActivityPlanner({
                     </ul>
                 )}
 
+                {/* New-activity form; every field updates newActivity and Enter calls onAddActivity. */}
                 <p className={styles.subhead}>Add an activity</p>
                 <div className={styles.formStack}>
                     <label className={dash.field}>
@@ -173,6 +190,7 @@ export default function ActivityPlanner({
                             onKeyDown={e => { if (e.key === 'Enter') onAddActivity(); }}
                         />
                     </label>
+                    {/* Add button stays disabled until activityValid. */}
                     <button
                         type="button"
                         className={dash.submit}

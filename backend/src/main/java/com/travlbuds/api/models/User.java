@@ -1,10 +1,13 @@
+// Model package: JPA entities mapped to PostgreSQL tables.
 package com.travlbuds.api.models;
 
+// JPA annotations, Jackson's @JsonIgnore (keeps secrets out of JSON) and Instant for the token expiry.
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.Instant;
 
+// Maps this class to the "users" table; also used as the Spring Security principal by JwtAuthenticationFilter.
 @Entity
 @Table(name = "users") // "user" is a reserved word in Postgres, so we use "users"
 
@@ -16,31 +19,42 @@ import java.time.Instant;
  */
 public class User {
 
+    // Auto-increment primary key; never taken from the request, only from the authenticated User.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Public identity fields set at registration by AuthController.
     private String username;
     private String email;
 
+    // Password hash; hidden from JSON, written by AuthController and PasswordResetService.
     @JsonIgnore
+    // How: @JsonIgnore keeps Jackson from ever writing this field into a response, so the hash cannot leak when a User
+    // or a Trip containing a User is serialized.
     private String passwordHash;
 
+    // SHA-256 hash of the single-use reset token and its expiry; both hidden from JSON, managed by PasswordResetService.
     @JsonIgnore
+    // How: the reset flow stores only the hash and an expiry on the user row; PasswordResetService.consumeToken nulls
+    // both once the token is used.
     private String resetTokenHash;
 
     @JsonIgnore
     private Instant resetTokenExpiresAt;
 
     // Empty constructor required by JPA
+    // How: the no-arg constructor is used by Hibernate when loading rows.
     public User() {
     }
 
+    // Convenience constructor for username and email (password is set separately).
     public User(String username, String email) {
         this.username = username;
         this.email = email;
     }
 
+    // Getters/setters: used by Jackson, AuthController, JwtAuthenticationFilter and PasswordResetService.
     public Long getId() {
         return id;
     }

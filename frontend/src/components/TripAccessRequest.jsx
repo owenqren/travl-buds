@@ -1,6 +1,8 @@
+// dash = shared dashboard styles, styles = trip page styles; both are CSS modules.
 import dash from './Dashboard.module.css';
 import styles from './TripPage.module.css';
 
+// Title and message per status returned by GET /members/me (plus NOT_FOUND).
 /** Copy shown on this screen, keyed by GET /members/me status. */
 const ACCESS_COPY = {
     NOT_FOUND: {
@@ -21,6 +23,7 @@ const ACCESS_COPY = {
     },
 };
 
+// Props come from TripDetails: access status, request state and handlers.
 /**
  * Shown instead of the trip page to anyone who isn't the owner or an
  * approved member, since every other trip-scoped endpoint 403s them.
@@ -35,10 +38,14 @@ export default function TripAccessRequest({
     requestError,
     onRequestAccess,
 }) {
+    // Falls back to the NONE copy for unexpected status values.
+    // How: object lookup by status string; || falls back to the NONE copy when the status is null or unexpected.
     const copy = ACCESS_COPY[access] || ACCESS_COPY.NONE;
 
+    // Page layout: header with back button, then an access section.
     return (
         <div className={styles.page}>
+            {/* Back button and trip title. */}
             <header className={styles.header}>
                 <button
                     type="button"
@@ -50,6 +57,7 @@ export default function TripAccessRequest({
                 <h2 className={styles.title}>{tripName || `Trip #${tripId}`}</h2>
             </header>
 
+            {/* Status title and message. */}
             <section className={dash.section}>
                 <div className={dash.rail}>
                     <span className={dash.caption}>Access</span>
@@ -59,6 +67,9 @@ export default function TripAccessRequest({
                     <h2 className={dash.sectionTitle}>{copy.title}</h2>
                     <p className={styles.note}>{copy.body}</p>
 
+                    {/* Request button only for visitors with no membership yet; calls onRequestAccess. */}
+                    {/* How: only visitors with no membership row see the button; PENDING and REJECTED visitors have
+                        already asked. */}
                     {access === 'NONE' && (
                         <button
                             type="button"
@@ -70,6 +81,7 @@ export default function TripAccessRequest({
                             <span className={dash.arrow} aria-hidden="true">→</span>
                         </button>
                     )}
+                    {/* Error from a failed request. */}
                     {requestError && (
                         <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{requestError}</p>
                     )}

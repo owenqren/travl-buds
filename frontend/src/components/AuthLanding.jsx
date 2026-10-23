@@ -1,6 +1,8 @@
+// LoginForm is the login/register/forgot form; AuthLanding.module.css supplies the landing page styles.
 import LoginForm from './LoginForm';
 import styles from './AuthLanding.module.css';
 
+// Marketing copy for the landing page, rendered by the list below.
 /**
  * Index of what TravlBuds does, shown beside the auth form.
  * Kept as data so the masthead stays declarative.
@@ -17,12 +19,16 @@ const CAPABILITIES = [
  *
  * @param {(authResponse: object) => void} onLogin Called with the auth payload on success.
  */
+// Presentational component: no state of its own; it forwards onLogin (App.jsx handleLogin) to LoginForm.
 export default function AuthLanding({ onLogin }) {
     return (
+        // Page layout: left masthead, right auth panel.
         <main className={styles.page}>
+            {/* Masthead: headline, pitch and capability list. */}
             <section className={styles.masthead}>
                 <p className={styles.eyebrow}>TravlBuds — Collaborative Planning</p>
 
+                {/* Display headline. */}
                 <h1 className={styles.display}>
                     Plan the trip
                     <span className={styles.displayThin}>
@@ -30,12 +36,16 @@ export default function AuthLanding({ onLogin }) {
                     </span>
                 </h1>
 
+                {/* Short pitch paragraph. */}
                 <p className={styles.lede}>
                     Nine people, one thread, forty unread messages and still no booking.
                     TravlBuds turns that into a plan everyone actually agreed to.
                 </p>
 
+                {/* Numbered list built from CAPABILITIES. */}
                 <ol className={styles.index}>
+                    {/* How: map turns each data object into an <li>; destructuring in the callback parameter pulls out
+                        num, label and note, and key={num} gives React a stable identity for each row. */}
                     {CAPABILITIES.map(({ num, label, note }) => (
                         <li key={num} className={styles.indexItem}>
                             <span className={styles.indexNum}>{num}</span>
@@ -48,7 +58,10 @@ export default function AuthLanding({ onLogin }) {
                 </ol>
             </section>
 
+            {/* Auth panel: LoginForm plus a privacy note. */}
             <section className={styles.panel}>
+                {/* How: onLogin is passed down as a prop; LoginForm calls it with the backend response, which runs
+                    App.jsx's handleLogin. */}
                 <LoginForm onLogin={onLogin} />
 
                 <p className={styles.footnote}>

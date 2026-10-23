@@ -1,3 +1,4 @@
+// React hooks, the section components this screen composes, the authenticated fetch helper and the shared CSS modules.
 import { useState, useEffect } from 'react';
 import WeatherForecast from './WeatherForecast';
 import TripMap from './TripMap';
@@ -22,6 +23,7 @@ import styles from './TripPage.module.css';
  */
 
 export default function TripDetails({ tripId, trip, onBack, units, currentUserId }) {
+    // Trip data state: days, the selected day, that day's voted locations and activities, and loading/error flags.
     const [days, setDays] = useState([]);
     const [selectedDayId, setSelectedDayId] = useState(null);
     const [votedLocations, setVotedLocations] = useState([]);
@@ -30,6 +32,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     const [loadError, setLoadError] = useState('');
     const [dayDataError, setDayDataError] = useState('');
     const [actionError, setActionError] = useState('');
+    // Form state for the new voted location and the new activity (each field is controlled).
     const [newLocation, setNewLocation] = useState('');
     const [newActivity, setNewActivity] = useState({
         name: '',
@@ -41,10 +44,12 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     const [hasVoted, setHasVoted] = useState(false);
     const [newDayDate, setNewDayDate] = useState(null);
     const [newLocationVisitTime, setNewLocationVisitTime] = useState('');
+    // AI chat state: loading flag, message history and the input text.
     const [aiLoading, setAiLoading] = useState(false);
     const [aiMessages, setAiMessages] = useState([]);
     const [aiInput, setAiInput] = useState('');
 
+    // Member list and the add-member / share-link feedback state.
     const [members, setMembers] = useState([]);
     const [newMemberEmail, setNewMemberEmail] = useState('');
     const [memberStatus, setMemberStatus] = useState('');
@@ -58,6 +63,9 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     const [requestPending, setRequestPending] = useState(false);
     const [requestError, setRequestError] = useState('');
 
+    // Derived: access status for this trip (null until loaded), whether the caller may use the trip endpoints, and whether they own the trip.
+    // How: results are tagged with their tripId; after navigating to another trip the tag no longer matches, so `access`
+    // is null until the new check finishes, which prevents a flash of the wrong view.
     const access = accessResult.tripId === tripId ? accessResult.status : null;
     const hasAccess = access === 'OWNER' || access === 'APPROVED';
     const isOwner = Boolean(trip?.user?.id) && trip.user.id === currentUserId;
@@ -66,6 +74,9 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     useEffect(() => {
         let cancelled = false;
 
+        // GET /members/me; a 404 means the trip doesn't exist.
+        // How: the .then chain turns a 404 into a synthetic NOT_FOUND status, throws on other errors, and otherwise
+        // parses the JSON {status}. The catch falls back to NONE so the request-access screen shows.
         authFetch(`/api/trips/${tripId}/members/me`)
             .then(res => {
                 if (res.status === 404) return { status: 'NOT_FOUND' };
@@ -78,9 +89,11 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
                 if (!cancelled) setAccessResult({ tripId, status: 'NONE' });
             });
 
+        // Cleanup: ignore a late response for a previous trip.
         return () => { cancelled = true; };
     }, [tripId]);
 
+    // POST /members/request: asks the owner for access and stores the resulting status.
     const handleRequestAccess = async () => {
         setRequestPending(true);
         setRequestError('');
@@ -99,8 +112,10 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
 
     // Fetch all days for the trip
     useEffect(() => {
+        // Skip until the caller is known to have access.
         if (!hasAccess) return;
 
+        // GET /days; selects the first day and ends the loading state.
         authFetch(`/api/trips/${tripId}/days`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to load days.');
@@ -120,26 +135,33 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
 
     // Fetch activities and voted locations when selected day changes
     useEffect(() => {
+        // Needs both a selected day and access.
         if (!selectedDayId || !hasAccess) return;
 
         let cancelled = false;
 
+        // Destinations (vote counts are null until the caller has voted).
         const fetchLocations = authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to load destinations.');
                 return res.json();
             });
 
+        // Activities for the selected day.
         const fetchActivities = authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to load activities.');
                 return res.json();
             });
 
+        // Load both in parallel and update state together.
+        // How: both requests start as soon as their promises are created, so they run in parallel; Promise.all resolves
+        // when both finish and rejects if either fails.
         Promise.all([fetchLocations, fetchActivities])
             .then(([locData, actData]) => {
                 if (cancelled) return;
                 setVotedLocations(locData);
+                // The backend only sends counts after the user has voted, so non-null counts mean hasVoted.
                 setHasVoted(locData.some(d => d.voteCount !== null));
                 setActivities(actData);
                 setDayDataError('');
@@ -149,19 +171,23 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
                 if (!cancelled) setDayDataError('Could not load activities or votes for this day.');
             });
 
+        // Cleanup: ignore a late response for a previous day.
         return () => { cancelled = true; };
     }, [selectedDayId, tripId, hasAccess]);
 
     // Fetch existing members on load
     useEffect(() => {
+        // Skip until the caller has access.
         if (!hasAccess) return;
 
+        // GET /members: the owner also receives PENDING members.
         authFetch(`/api/trips/${tripId}/members`)
             .then(res => res.json())
             .then(data => setMembers(data))
             .catch(err => console.error('Failed to load members:', err));
     }, [tripId, hasAccess]);
 
+    // POST /members: adds a member by email (created as PENDING) and shows a short-lived status message.
     const handleAddMember = async () => {
         const email = newMemberEmail.trim().toLowerCase();
         if (!email) return;
@@ -183,9 +209,11 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         } catch {
             setMemberStatus('Error adding member.');
         }
+        // How: clears the feedback message after 3 seconds.
         setTimeout(() => setMemberStatus(''), 3000);
     };
 
+    // DELETE /members?email=...: owner-only removal.
     const handleRemoveMember = async (email) => {
         try {
             const res = await authFetch(`/api/trips/${tripId}/members?email=${encodeURIComponent(email)}`, {
@@ -200,6 +228,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         }
     };
 
+    // POST /members/{id}/approve: owner-only; replaces the member row with the updated one.
     const handleApproveMember = async (memberId) => {
         const res = await authFetch(`/api/trips/${tripId}/members/${memberId}/approve`, { method: 'POST' });
         if (res.ok) {
@@ -208,6 +237,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         }
     };
 
+    // POST /members/{id}/reject: owner-only; replaces the member row with the updated one.
     const handleRejectMember = async (memberId) => {
         const res = await authFetch(`/api/trips/${tripId}/members/${memberId}/reject`, { method: 'POST' });
         if (res.ok) {
@@ -216,9 +246,12 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         }
     };
 
+    // Copies the trip URL to the clipboard, falling back to showing the URL if copying fails.
     const handleCopyShareLink = async () => {
         const shareUrl = `${window.location.origin}/trips/${tripId}`;
         try {
+            // How: the Clipboard API is asynchronous and can be refused (permissions or a non-secure page), so a failure
+            // falls back to showing the URL as text.
             await navigator.clipboard.writeText(shareUrl);
             setShareStatus('Link copied!');
             setTimeout(() => setShareStatus(''), 2000);
@@ -228,6 +261,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         }
     };
 
+    // POST /days: adds a day by date, selects it and clears the date input.
     const handleAddDay = () => {
         if (!newDayDate) return;
 
@@ -251,6 +285,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
     };
 
+    // POST /days/{id}/vote, then refetch destinations so counts become visible.
     const handleVote = (locationId) => {
         setActionError('');
         authFetch(`/api/trips/${tripId}/days/${selectedDayId}/vote?votedLocationId=${locationId}`, {
@@ -258,6 +293,8 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         })
             .then(res => {
                 if (!res.ok) throw new Error('Failed to cast vote.');
+                // How: returning a promise from .then makes the next .then wait for it, so the list is refreshed only
+                // after the vote succeeded.
                 return authFetch(`/api/trips/${tripId}/days/${selectedDayId}/destinations`);
             })
             .then(res => res.json())
@@ -271,6 +308,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
     };
 
+    // POST /days/{id}/destinations: suggests a spot (name, address, time) and appends it to the list.
     const handleAddLocation = () => {
         if (!newLocation.trim() || !newLocationAddress.trim() || !newLocationVisitTime || !selectedDayId) {
             return;
@@ -301,11 +339,13 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
     };
 
+    // Sends a chat message to POST /api/ai/suggestions with the destination and selected date, and appends the reply.
     const sendAiMessage = async (message) => {
         const trimmedMessage = message?.trim();
 
         if (!trimmedMessage) return;
 
+        // Show the user's message immediately and mark the AI as busy.
         const userMessage = { role: 'user', content: trimmedMessage };
         setAiMessages(prev => [...prev, userMessage]);
         setAiLoading(true);
@@ -321,6 +361,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
 
             const data = await response.json();
+            // Use the model's reply on success, or the backend's error message on failure.
             const reply = response.ok
                 ? data.choices?.[0]?.message?.content || 'No response returned.'
                 : data.error || 'The AI assistant is unavailable right now.';
@@ -337,9 +378,11 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         }
     };
 
+    // Builds a canned prompt for the selected day and sends it through the chat.
     const handleSuggestIdeas = () => {
         const selectedDay = days.find(day => day.id === selectedDayId);
 
+        // How: a template literal builds a multi-line prompt; ${...} inserts the destination and date.
         sendAiMessage(`
             Suggest 5 realistic activities or food spots for this trip day.
 
@@ -355,6 +398,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             `);
     };
 
+    // POST /days/{id}/activities, then refetch the day's activities.
     const handleAddActivity = () => {
         if (!newActivity.name.trim() || !newActivity.address.trim() || !newActivity.visitTime || !selectedDayId) {
             return;
@@ -380,6 +424,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
     };
 
+    // POST .../activities/{id}/join (opt in), then refetch activities.
     const handleJoinActivity = (activityId) => {
         setActionError('');
         authFetch(`/api/trips/${tripId}/days/${selectedDayId}/activities/${activityId}/join`, {
@@ -397,6 +442,9 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
             });
     };
 
+    // Stops for the day route map: activities and voted spots that have an address and time, ordered by time.
+    // How: the spread operator merges two mapped arrays into one list with a common shape; filter keeps entries that
+    // have both an address and a time, and sort orders them with localeCompare, which orders 'HH:MM' strings correctly.
     const dayStops = [
         ...activities.map(activity => ({
             id: `activity-${activity.id}`,
@@ -415,11 +463,13 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
     ].filter(stop => stop.address && stop.visitTime)
         .sort((a, b) => a.visitTime.localeCompare(b.visitTime));
 
+    // Wait for the access check.
     if (access === null) return <p className={styles.note}>Loading...</p>;
 
     // Every trip-scoped endpoint 403s anyone who isn't the owner or an
     // approved member, so show a request-access screen instead of a page
     // full of empty, failed sections.
+    // No access: show the request-access screen instead of the trip.
     if (!hasAccess) {
         return (
             <TripAccessRequest
@@ -434,12 +484,15 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
         );
     }
 
+    // Wait for the days to load.
     if (loading) return <p className={styles.note}>Loading...</p>;
 
+    // The currently selected day object, passed to the section components.
     const selectedDay = days.find(day => day.id === selectedDayId);
 
     return (
         <div className={styles.page}>
+            {/* Header: back button, trip name, destination and share link. */}
             <header className={styles.header}>
                 <button
                     type="button"
@@ -463,6 +516,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
                 </div>
             </header>
 
+            {/* Load and action errors. */}
             {loadError && (
                 <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{loadError}</p>
             )}
@@ -470,6 +524,7 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
                 <p className={`${styles.note} ${styles.noteError} ${styles.noteTop}`}>{actionError}</p>
             )}
 
+            {/* Two-column layout: sidebar (days, members) and main (map, weather, route, activities, votes). */}
             <div className={styles.layout}>
                 <div className={styles.sidebar}>
                     <DaySelector
@@ -494,11 +549,13 @@ export default function TripDetails({ tripId, trip, onBack, units, currentUserId
                     />
                 </div>
 
+                {/* Main column: map, forecast and day route, then the per-day sections. */}
                 <div className={styles.main}>
                     <TripMap destination={trip?.destination} mapProvider={units.mapProvider} />
                     <WeatherForecast destination={trip?.destination} tripDays={days} units={units} />
                     <VoteSpotMap locations={dayStops} destination={trip?.destination} />
 
+                    {/* No day yet, a load error for the day, or the activity and voting sections. */}
                     {!selectedDayId ? (
                         <section className={dash.section}>
                             <div className={dash.rail}>

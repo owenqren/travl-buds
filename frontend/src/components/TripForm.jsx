@@ -1,3 +1,4 @@
+// useState holds the form fields; authFetch sends the authenticated POST; styles are the dashboard CSS module.
 import { useState } from 'react';
 
 import { authFetch } from '../utils/authFetch';
@@ -10,12 +11,17 @@ import styles from './Dashboard.module.css';
  * trip to the backend and notifies the parent when creation succeeds.
  */
 export default function TripForm({ onTripAdded }) {
+    // Form fields as one object; reset after a successful save.
     const [tripData, setTripData] = useState({
         name: '', destination: '', startDate: '', endDate: ''
     });
 
+    // Truthy only when name, destination and both dates are filled in.
+    // How: trim() makes whitespace-only text empty (falsy); the && chain yields a truthy value only if every field is
+    // filled, and it feeds disabled={!isValid} on the button.
     const isValid = tripData.name.trim() && tripData.destination.trim() && tripData.startDate && tripData.endDate;
 
+    // Posts the trip to POST /api/trips; the owner is set server-side from the JWT.
     const handleSubmit = async (e) => {
         e.preventDefault();
         // The date fields also call this directly on Enter, bypassing the
@@ -23,10 +29,14 @@ export default function TripForm({ onTripAdded }) {
         if (!isValid) return;
 
         try {
+            // authFetch adds the Bearer token and VITE_API_URL.
+            // How: authFetch adds the API base URL and the Bearer header; the body is the JSON string of tripData, and
+            // the backend assigns the id and owner.
             const response = await authFetch('/api/trips', {
                 method: 'POST',
                 body: JSON.stringify(tripData)
             });
+            // On success pass the saved trip to App.jsx (onTripAdded) and clear the form.
             if (response.ok) {
                 const newTrip = await response.json();
                 onTripAdded(newTrip);
@@ -36,8 +46,10 @@ export default function TripForm({ onTripAdded }) {
             console.error("Failed to save trip:", error);
         }
     };
+    // Layout: caption rail on the left, form on the right.
     return (
         <section className={styles.section}>
+            {/* Section captions. */}
             <div className={styles.rail}>
                 <span className={styles.caption}>01</span>
                 <span className={styles.caption}>Plan</span>
@@ -46,6 +58,9 @@ export default function TripForm({ onTripAdded }) {
             <div>
                 <h2 className={styles.sectionTitle}>New trip</h2>
 
+                {/* Name and destination inputs update tripData. */}
+                {/* How: a native form lets Enter in a text input submit; the inputs are controlled, so React state is the
+                    single source of truth. */}
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <label className={styles.field}>
                         <span className={styles.label}>Trip name</span>
@@ -67,6 +82,9 @@ export default function TripForm({ onTripAdded }) {
                             onChange={e => setTripData({ ...tripData, destination: e.target.value })}
                         />
                     </label>
+                    {/* Start and end dates; Enter submits via handleSubmit. */}
+                    {/* How: date inputs call handleSubmit on Enter themselves because browsers do not always submit a
+                        form from a date field; handleSubmit re-checks isValid for that reason. */}
                     <div className={styles.fieldRow}>
                         <label className={styles.field}>
                             <span className={styles.label}>Start</span>
@@ -89,6 +107,7 @@ export default function TripForm({ onTripAdded }) {
                             />
                         </label>
                     </div>
+                    {/* Submit stays disabled until isValid. */}
                     <button type="submit" disabled={!isValid} className={styles.submit}>
                         <span>Add trip</span>
                         <span className={styles.arrow} aria-hidden="true">→</span>

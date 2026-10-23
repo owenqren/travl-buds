@@ -1,3 +1,4 @@
+/* Global design tokens (light theme defaults) and base typography; every component reads these CSS variables. */
 :root {
   --text: #6b4c7f;
   --text-h: #3a1550;
@@ -6,6 +7,7 @@
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
 
+  /* Font stacks used by body text, headings and code. */
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
@@ -16,6 +18,7 @@
   --space-colossal: clamp(4.5rem, 12vh, 8rem);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Base font, color scheme support and text rendering for the whole app. */
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
@@ -26,11 +29,13 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /* Slightly smaller base size on tablets and phones. */
   @media (max-width: 1024px) {
     font-size: 16px;
   }
 }
 
+/* Dark palette when the OS prefers dark and the user has not forced light via data-theme (set by App.jsx). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --text: #b6a6c0;
@@ -52,10 +57,12 @@
   --accent: #c084fc;
 }
 
+/* Remove the browser's default body margin. */
 body {
   margin: 0;
 }
 
+/* React mount point (#root in index.html): centered column, full viewport height, flex so footers can sit at the bottom. */
 #root {
   width: 1126px;
   max-width: 100%;
@@ -67,6 +74,7 @@ body {
   box-sizing: border-box;
 }
 
+/* Heading font and color shared by h1/h2. */
 h1,
 h2 {
   font-family: var(--heading);
@@ -74,6 +82,7 @@ h2 {
   color: var(--text-h);
 }
 
+/* h1 sizing, with smaller values on narrow screens. */
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
@@ -83,6 +92,7 @@ h1 {
     margin: 20px 0;
   }
 }
+/* h2 sizing, with a smaller value on narrow screens. */
 h2 {
   font-size: 24px;
   line-height: 118%;
@@ -92,7 +102,7 @@ h2 {
     font-size: 20px;
   }
 }
+/* Paragraphs rely on parent spacing, so default margins are removed. */
 p {
   margin: 0;
 }
-
