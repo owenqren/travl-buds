@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 // Entities, repository and access service used below.
+import com.travlbuds.api.dto.TripResponse;
 import com.travlbuds.api.models.Trip;
 import com.travlbuds.api.models.User;
 import com.travlbuds.api.repositories.TripRepository;
@@ -53,7 +54,7 @@ public class TripController {
         // How: delegates to the service, which runs two queries (owned trips; shared trip ids then one batch fetch)
         // instead of one per trip.
         List<Trip> userTrips = tripAccessService.findAccessibleTrips(user);
-        return ResponseEntity.ok(userTrips);
+        return ResponseEntity.ok(userTrips.stream().map(TripResponse::from).toList());
     }
 
     // GET /api/trips/{tripId}: one trip, only for the owner or an approved member.
@@ -71,7 +72,7 @@ public class TripController {
         // How: map(ResponseEntity::ok) turns a found trip into a 200 response and an empty Optional into 404; the
         // explicit <ResponseEntity<?>> type argument is needed so both branches share one type.
         return tripRepository.findById(tripId)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .<ResponseEntity<?>>map(trip -> ResponseEntity.ok(TripResponse.from(trip)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -88,7 +89,7 @@ public class TripController {
         // client cannot create a trip for someone else.
         trip.setUser(user);
         Trip savedTrip = tripRepository.save(trip);
-        return ResponseEntity.ok(savedTrip);
+        return ResponseEntity.ok(TripResponse.from(savedTrip));
     }
 
     // Reads the User principal from the SecurityContext (set by JwtAuthenticationFilter); null when unauthenticated.
