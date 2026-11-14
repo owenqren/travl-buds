@@ -1,6 +1,8 @@
 FROM maven:3.9-eclipse-temurin-25 AS build
 WORKDIR /app
 COPY pom.xml .
+# Cache dependencies in their own layer so code-only changes skip the download
+RUN mvn -q dependency:go-offline
 COPY src ./src
 # Build the .jar file and skip tests to speed up deployment
 RUN mvn clean package -DskipTests
